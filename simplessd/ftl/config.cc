@@ -39,6 +39,9 @@ const char NAME_GC_EVICT_POLICY[] = "EvictPolicy";
 const char NAME_GC_D_CHOICE_PARAM[] = "DChoiceParam";
 const char NAME_USE_RANDOM_IO_TWEAK[] = "EnableRandomIOTweak";
 
+const char NAME_REFRESH_POLICY[] = "RefreshPolicy";
+const char NAME_REFRESH_THREHSHOLD[] = "RefreshThreshold";
+
 Config::Config() {
   mapping = PAGE_MAPPING;
   overProvision = 0.25f;
@@ -53,6 +56,9 @@ Config::Config() {
   evictPolicy = POLICY_GREEDY;
   dChoiceParam = 3;
   randomIOTweak = true;
+
+  refreshPolicy = POLICY_NONE;
+  refreshThreshold = 10000000;
 }
 
 bool Config::setConfig(const char *name, const char *value) {
@@ -97,6 +103,12 @@ bool Config::setConfig(const char *name, const char *value) {
   else if (MATCH_NAME(NAME_USE_RANDOM_IO_TWEAK)) {
     randomIOTweak = convertBool(value);
   }
+  else if (MATCH_NAME(NAME_REFRESH_POLICY)) {
+    refreshPolicy = (REFRESH_POLICY)strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_REFRESH_THREHSHOLD)) {
+    refreshThreshold = strtoul(value, nullptr, 10);
+  }
   else {
     ret = false;
   }
@@ -135,6 +147,9 @@ int64_t Config::readInt(uint32_t idx) {
     case FTL_GC_EVICT_POLICY:
       ret = evictPolicy;
       break;
+    case FTL_REFRESH_POLICY:
+      ret = refreshPolicy;
+      break;
   }
 
   return ret;
@@ -155,6 +170,9 @@ uint64_t Config::readUint(uint32_t idx) {
       break;
     case FTL_GC_D_CHOICE_PARAM:
       ret = dChoiceParam;
+      break;
+    case FTL_REFRESH_THRESHOLD:
+      ret = refreshThreshold;
       break;
   }
 

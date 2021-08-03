@@ -42,6 +42,9 @@ typedef enum {
   FTL_GC_D_CHOICE_PARAM,
   FTL_USE_RANDOM_IO_TWEAK,
 
+  FTL_REFRESH_POLICY,
+  FTL_REFRESH_THRESHOLD,
+
   /* N+K Mapping configuration*/
   FTL_NKMAP_N,
   FTL_NKMAP_K,
@@ -69,6 +72,10 @@ typedef enum {
   POLICY_DCHOICE,
 } EVICT_POLICY;
 
+typedef enum {
+  POLICY_NONE,
+} REFRESH_POLICY;
+
 class Config : public BaseConfig {
  private:
   MAPPING mapping;             //!< Default: PAGE_MAPPING
@@ -84,6 +91,9 @@ class Config : public BaseConfig {
   EVICT_POLICY evictPolicy;    //!< Default: POLICY_GREEDY
   uint64_t dChoiceParam;       //!< Default: 3
   bool randomIOTweak;          //!< Default: true
+
+  REFRESH_POLICY refreshPolicy;
+  uint64_t refreshThreshold;
 
  public:
   Config();

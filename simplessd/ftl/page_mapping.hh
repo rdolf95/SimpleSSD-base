@@ -57,7 +57,14 @@ class PageMapping : public AbstractFTL {
     uint64_t reclaimedBlocks;
     uint64_t validSuperPageCopies;
     uint64_t validPageCopies;
+
+    uint64_t refreshCount;
+    uint64_t refreshedBlocks;
+    uint64_t refreshSuperPageCopies;
+    uint64_t refreshPageCopies;
   } stat;
+
+  uint64_t lastRefreshed;
 
   float freeBlockRatio();
   uint32_t convertBlockIdx(uint32_t);
@@ -65,7 +72,7 @@ class PageMapping : public AbstractFTL {
   uint32_t getLastFreeBlock(Bitset &);
   void calculateVictimWeight(std::vector<std::pair<uint32_t, float>> &,
                              const EVICT_POLICY, uint64_t);
-  void selectVictimBlock(std::vector<uint32_t> &, uint64_t &);
+  void selectVictimBlock(std::vector<uint32_t> &, uint64_t &, std::vector<uint32_t> &);
   void doGarbageCollection(std::vector<uint32_t> &, uint64_t &);
 
   float calculateWearLeveling();
@@ -75,6 +82,11 @@ class PageMapping : public AbstractFTL {
   void writeInternal(Request &, uint64_t &, bool = true);
   void trimInternal(Request &, uint64_t &);
   void eraseInternal(PAL::Request &, uint64_t &);
+
+  void doRefresh(std::vector<uint32_t> &, uint64_t &);
+  void selectRefreshVictim(std::vector<uint32_t> &, uint64_t &);
+  void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
+                            const REFRESH_POLICY, uint64_t);
 
  public:
   PageMapping(ConfigReader &, Parameter &, PAL::PAL *, DRAM::AbstractDRAM *);

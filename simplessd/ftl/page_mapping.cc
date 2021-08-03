@@ -37,7 +37,8 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
       conf(c),
       lastFreeBlock(param.pageCountToMaxPerf),
       lastFreeBlockIOMap(param.ioUnitInPage),
-      bReclaimMore(false) {
+      bReclaimMore(false),
+      lastRefreshed(0) {
   blocks.reserve(param.totalPhysicalBlocks);
   table.reserve(param.totalLogicalBlocks * param.pagesInBlock);
 
@@ -203,7 +204,7 @@ void PageMapping::read(Request &req, uint64_t &tick) {
 
 void PageMapping::write(Request &req, uint64_t &tick) {
   uint64_t begin = tick;
-
+  
   if (req.ioFlag.count() > 0) {
     writeInternal(req, tick);
 
@@ -419,7 +420,7 @@ void PageMapping::calculateVictimWeight(
 }
 
 void PageMapping::selectVictimBlock(std::vector<uint32_t> &list,
-                                    uint64_t &tick) {
+                                    uint64_t &tick, std::vector<uint32_t> &exceptList) {
   static const GC_MODE mode = (GC_MODE)conf.readInt(CONFIG_FTL, FTL_GC_MODE);
   static const EVICT_POLICY policy =
       (EVICT_POLICY)conf.readInt(CONFIG_FTL, FTL_GC_EVICT_POLICY);
@@ -464,7 +465,10 @@ void PageMapping::selectVictimBlock(std::vector<uint32_t> &list,
     while (selected.size() < randomRange) {
       uint64_t idx = dist(gen);
 
-      if (weight.at(idx).first < std::numeric_limits<uint32_t>::max()) {
+      auto findIter = std::find(exceptList.begin(), exceptList.end(), weight.at(idx).first);
+
+      if (weight.at(idx).first < std::numeric_limits<uint32_t>::max() 
+          && findIter == exceptList.end()) {
         selected.push_back(weight.at(idx));
         weight.at(idx).first = std::numeric_limits<uint32_t>::max();
       }
@@ -616,6 +620,222 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
 
   tick = MAX(writeFinishedAt, eraseFinishedAt);
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
+}
+
+void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
+                                      uint64_t &tick) {
+  PAL::Request req(param.ioUnitInPage);
+  std::vector<PAL::Request> readRequests;
+  std::vector<PAL::Request> writeRequests;
+  std::vector<PAL::Request> eraseRequests;
+  std::vector<uint64_t> lpns;
+  Bitset bit(param.ioUnitInPage);
+  uint64_t beginAt;
+  uint64_t readFinishedAt = tick;
+  uint64_t writeFinishedAt = tick;
+  uint64_t eraseFinishedAt = tick;
+
+  std::vector<uint64_t> tempLpns;
+  Bitset tempBit(param.ioUnitInPage);
+  static float gcThreshold = conf.readFloat(CONFIG_FTL, FTL_GC_THRESHOLD_RATIO);
+
+  if (blocksToRefresh.size() == 0) {
+    return;
+  }
+
+
+  while (freeBlockRatio() < gcThreshold) {
+    
+    debugprint(LOG_FTL_PAGE_MAPPING, "gcThreshold : %lf", gcThreshold);
+    debugprint(LOG_FTL_PAGE_MAPPING, "freeBlockRatio : %lf", freeBlockRatio());
+    debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks : %u", nFreeBlocks);
+
+    std::vector<uint32_t> list;
+    uint64_t beginAt = tick;
+
+    selectVictimBlock(list, beginAt, blocksToRefresh);
+
+    // If the block would be garbage collected, it shouldn't be refeshed
+    for (auto & gcIter : list) {
+      debugprint(LOG_FTL_PAGE_MAPPING, "Block %u will be garbage collected", gcIter);
+      //blocksToRefresh.erase(std::remove(blocksToRefresh.begin(), blocksToRefresh.end(), gcIter), blocksToRefresh.end());
+    }
+    
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+              "GC   | Refreshing | %u blocks will be reclaimed", list.size());
+
+    doGarbageCollection(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+              "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
+              beginAt, beginAt - tick);
+    stat.gcCount++;
+    stat.reclaimedBlocks += list.size();
+    debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks after gc : %u", nFreeBlocks);
+
+    //** Problem : refresh 될 block이 garbage collection에 의해 erase 될 수 있음
+  }
+  
+  debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
+  // For all blocks to reclaim, collecting request structure only
+  for (auto &iter : blocksToRefresh) {
+    auto block = blocks.find(iter);
+
+    if (block == blocks.end()) {
+      debugprint(LOG_FTL_PAGE_MAPPING, "Cannot find block %u", iter);
+      panic("Invalid block, refresh failed");
+    }
+
+    // Copy valid pages to free block
+    for (uint32_t pageIndex = 0; pageIndex < param.pagesInBlock; pageIndex++) {
+      //debugprint(LOG_FTL_PAGE_MAPPING, "Check valid");
+      // Valid?
+      if (block->second.getValidPageCount()) {
+        block->second.getPageInfo(pageIndex, lpns, bit);
+        if (!bRandomTweak) {
+          bit.set();
+        }
+
+        //debugprint(LOG_FTL_PAGE_MAPPING, "Retrive free block");
+
+        // Retrive free block
+        auto freeBlock = blocks.find(getLastFreeBlock(bit));
+
+        // Issue Read
+        req.blockIndex = block->first;
+        req.pageIndex = pageIndex;
+        req.ioFlag = bit;
+
+        readRequests.push_back(req);
+
+        //debugprint(LOG_FTL_PAGE_MAPPING, "Update mapping table");
+        // Update mapping table
+        uint32_t newBlockIdx = freeBlock->first;
+
+        for (uint32_t idx = 0; idx < bitsetSize; idx++) {
+          if (bit.test(idx)) {    
+            debugprint(LOG_FTL_PAGE_MAPPING, "in the if statement");
+            // Invalidate
+            block->second.invalidate(pageIndex, idx); // 여기서 out of range error
+            //debugprint(LOG_FTL_PAGE_MAPPING, "Invalidated");
+
+
+            auto mappingList = table.find(lpns.at(idx));
+            //debugprint(LOG_FTL_PAGE_MAPPING, "Found mapping list");
+
+            if (mappingList == table.end()) {
+              panic("Invalid mapping table entry, refresh failed");
+            }
+
+            pDRAM->read(&(*mappingList), 8 * param.ioUnitInPage, tick);
+
+            auto &mapping = mappingList->second.at(idx);
+            //debugprint(LOG_FTL_PAGE_MAPPING, "Found mapping");
+
+            uint32_t newPageIdx = freeBlock->second.getNextWritePageIndex(idx);
+
+            mapping.first = newBlockIdx;
+            mapping.second = newPageIdx;
+
+
+            freeBlock->second.write(newPageIdx, lpns.at(idx), idx, beginAt);
+            //debugprint(LOG_FTL_PAGE_MAPPING, "Written block");
+
+            freeBlock->second.getPageInfo(newPageIdx, tempLpns, tempBit);
+            //debugprint(LOG_FTL_PAGE_MAPPING, "got page info");
+ 
+            // Issue Write
+            req.blockIndex = newBlockIdx;
+            req.pageIndex = newPageIdx;
+
+            if (bRandomTweak) {
+              req.ioFlag.reset();
+              req.ioFlag.set(idx);
+            }
+            else {
+              req.ioFlag.set();
+            }
+
+            writeRequests.push_back(req);
+
+            stat.refreshPageCopies++;
+          }
+        }
+        //debugprint(LOG_FTL_PAGE_MAPPING, "set last written time");
+        freeBlock->second.setLastWrittenTime(tick);
+
+        stat.refreshSuperPageCopies++;
+      }
+    }
+    // TODO: Should be garbage collected when there is not enough blocks
+    // Or write should be performed by writeInternal
+  }
+  debugprint(LOG_FTL_PAGE_MAPPING, "Do actual I/O");
+  // Do actual I/O here
+  // This handles PAL2 limitation (SIGSEGV, infinite loop, or so-on)
+  for (auto &iter : readRequests) {
+    beginAt = tick;
+
+    pPAL->read(iter, beginAt);
+
+    readFinishedAt = MAX(readFinishedAt, beginAt);
+  }
+
+  for (auto &iter : writeRequests) {
+    beginAt = readFinishedAt;
+
+    pPAL->write(iter, beginAt);
+
+    writeFinishedAt = MAX(writeFinishedAt, beginAt);
+  }
+
+  tick = MAX(writeFinishedAt, eraseFinishedAt);
+  tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
+}
+
+// calculate weight of each block regarding victim selection policy
+void PageMapping::calculateRefreshWeight(
+    std::vector<std::pair<uint32_t, float>> &weight, const REFRESH_POLICY policy,
+    uint64_t tick) {
+
+  static uint64_t refreshThreshold =
+      conf.readUint(CONFIG_FTL, FTL_REFRESH_THRESHOLD);
+
+  weight.reserve(blocks.size());
+
+  switch (policy) {
+    case POLICY_NONE:
+      for (auto &iter : blocks) {
+        if (tick - iter.second.getLastWrittenTime() < refreshThreshold) {
+          continue;
+        }
+        // Refresh all blocks having data retention time exceeding thredhold
+        weight.push_back({iter.first, iter.second.getValidPageCountRaw()});
+      }
+
+      break;
+    default:
+      panic("Invalid refresh policy");
+  }
+}
+
+void PageMapping::selectRefreshVictim(std::vector<uint32_t> &list,
+                                    uint64_t &tick) {
+  static const REFRESH_POLICY policy =
+      (REFRESH_POLICY)conf.readInt(CONFIG_FTL, FTL_REFRESH_POLICY);
+  std::vector<std::pair<uint32_t, float>> weight;
+
+  list.clear();
+
+  // Calculate weights of all blocks
+  calculateRefreshWeight(weight, policy, tick);
+
+  for (uint64_t i = 0; i < weight.size(); i++) {
+    list.push_back(weight.at(i).first);
+  }
+
+  tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::SELECT_VICTIM_BLOCK);
 }
 
 void PageMapping::readInternal(Request &req, uint64_t &tick) {
@@ -777,6 +997,9 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     }
   }
 
+  // TODO: Have to record for each page
+  block->second.setLastWrittenTime(tick);
+
   // Exclude CPU operation when initializing
   if (sendToPAL) {
     tick = finishedAt;
@@ -795,7 +1018,8 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     std::vector<uint32_t> list;
     uint64_t beginAt = tick;
 
-    selectVictimBlock(list, beginAt);
+    std::vector<uint32_t> dummy;
+    selectVictimBlock(list, beginAt, dummy);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | On-demand | %u blocks will be reclaimed", list.size());
@@ -809,6 +1033,30 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     stat.gcCount++;
     stat.reclaimedBlocks += list.size();
   }
+  /*
+  if (tick - lastRefreshed > 1000000000 && sendToPAL){  // check every 1ms
+
+    std::vector<uint32_t> list;
+    uint64_t beginAt = tick;
+
+    selectRefreshVictim(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "REFRESH   | On-time | %u blocks will be refreshed", list.size());
+
+    doRefresh(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "REFRESH   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
+               beginAt, beginAt - tick);
+
+    stat.refreshCount++;
+    stat.refreshedBlocks += list.size();
+
+    lastRefreshed = tick;
+  }
+  */
+  
 }
 
 void PageMapping::trimInternal(Request &req, uint64_t &tick) {
@@ -955,6 +1203,22 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "Total copied valid pages during GC";
   list.push_back(temp);
 
+  temp.name = prefix + "page_mapping.refresh.count";
+  temp.desc = "Total Refresh count";
+  list.push_back(temp);
+
+  temp.name = prefix + "page_mapping.refresh.refreshed_blocks";
+  temp.desc = "Total blocks been refreshed";
+  list.push_back(temp);
+
+  temp.name = prefix + "page_mapping.refresh.superpage_copies";
+  temp.desc = "Total copied valid superpages during Refresh";
+  list.push_back(temp);
+
+  temp.name = prefix + "page_mapping.refresh.page_copies";
+  temp.desc = "Total copied valid pages during Refresh";
+  list.push_back(temp);
+
   // For the exact definition, see following paper:
   // Li, Yongkun, Patrick PC Lee, and John Lui.
   // "Stochastic modeling of large-scale solid-state storage systems: analysis,
@@ -969,6 +1233,12 @@ void PageMapping::getStatValues(std::vector<double> &values) {
   values.push_back(stat.reclaimedBlocks);
   values.push_back(stat.validSuperPageCopies);
   values.push_back(stat.validPageCopies);
+ 
+  values.push_back(stat.refreshCount);
+  values.push_back(stat.refreshedBlocks);
+  values.push_back(stat.refreshSuperPageCopies);
+  values.push_back(stat.refreshPageCopies);
+
   values.push_back(calculateWearLeveling());
 }
 

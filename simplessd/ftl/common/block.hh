@@ -49,6 +49,9 @@ class Block {
   uint64_t lastAccessed;
   uint32_t eraseCount;
 
+  // Refresh practice
+  uint64_t lastWritten;
+
  public:
   Block(uint32_t, uint32_t, uint32_t);
   Block(const Block &);      // Copy constructor
@@ -71,6 +74,10 @@ class Block {
   bool write(uint32_t, uint64_t, uint32_t, uint64_t);
   void erase();
   void invalidate(uint32_t, uint32_t);
+
+  // Refresh practice
+  uint64_t getLastWrittenTime();
+  void setLastWrittenTime(uint64_t);
 };
 
 }  // namespace FTL
