@@ -29,6 +29,8 @@
 #include "ftl/ftl.hh"
 #include "pal/pal.hh"
 
+#include "ftl/error_modeling.hh"
+
 namespace SimpleSSD {
 
 namespace FTL {
@@ -65,6 +67,8 @@ class PageMapping : public AbstractFTL {
   } stat;
 
   uint64_t lastRefreshed;
+
+  ErrorModeling errorModel;
 
   float freeBlockRatio();
   uint32_t convertBlockIdx(uint32_t);

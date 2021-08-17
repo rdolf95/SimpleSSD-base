@@ -271,7 +271,10 @@ uint32_t Block::getNextWritePageIndex(uint32_t idx) {
 bool Block::getPageInfo(uint32_t pageIndex, std::vector<uint64_t> &lpn,
                         Bitset &map) {
   if (ioUnitInPage == 1 && map.size() == 1) {
-    map.set();
+    map.reset();
+    if (pValidBits->test(pageIndex)) {
+      map.set();
+    }
     lpn = std::vector<uint64_t>(1, pLPNs[pageIndex]);
   }
   else if (map.size() == ioUnitInPage) {
@@ -327,7 +330,7 @@ bool Block::write(uint32_t pageIndex, uint64_t lpn, uint32_t idx,
 
     lastAccessed = tick;
 
-    lastWritten = tick;
+    //lastWritten = tick;
 
     if (ioUnitInPage == 1) {
       pErasedBits->reset(pageIndex);

@@ -45,6 +45,15 @@ typedef enum {
   FTL_REFRESH_POLICY,
   FTL_REFRESH_THRESHOLD,
 
+  /* Error modeling configuration */
+  FTL_TEMPERATURE,
+  FTL_COEFFICIENT_A,
+  FTL_COEFFICIENT_B,
+  FTL_CONSTANT_A,
+  FTL_CONSTANT_B,
+  FTL_ERROR_SIGMA,
+  FTL_RANDOM_SEED,
+
   /* N+K Mapping configuration*/
   FTL_NKMAP_N,
   FTL_NKMAP_K,
@@ -78,22 +87,30 @@ typedef enum {
 
 class Config : public BaseConfig {
  private:
-  MAPPING mapping;             //!< Default: PAGE_MAPPING
-  float overProvision;         //!< Default: 0.25 (25%)
-  float gcThreshold;           //!< Default: 0.05 (5%)
-  uint64_t badBlockThreshold;  //!< Default: 100000
-  FILLING_MODE fillingMode;    //!< Default: FILLING_MODE_0
-  float fillingRatio;          //!< Default: 0.0 (0%)
-  float invalidRatio;          //!< Default: 0.0 (0%)
-  uint64_t reclaimBlock;       //!< Default: 1
-  float reclaimThreshold;      //!< Default: 0.1 (10%)
-  GC_MODE gcMode;              //!< Default: FTL_GC_MODE_0
-  EVICT_POLICY evictPolicy;    //!< Default: POLICY_GREEDY
-  uint64_t dChoiceParam;       //!< Default: 3
-  bool randomIOTweak;          //!< Default: true
+  MAPPING mapping;              //!< Default: PAGE_MAPPING
+  float overProvision;          //!< Default: 0.25 (25%)
+  float gcThreshold;            //!< Default: 0.05 (5%)
+  uint64_t badBlockThreshold;   //!< Default: 100000
+  FILLING_MODE fillingMode;     //!< Default: FILLING_MODE_0
+  float fillingRatio;           //!< Default: 0.0 (0%)
+  float invalidRatio;           //!< Default: 0.0 (0%)
+  uint64_t reclaimBlock;        //!< Default: 1
+  float reclaimThreshold;       //!< Default: 0.1 (10%)
+  GC_MODE gcMode;               //!< Default: FTL_GC_MODE_0
+  EVICT_POLICY evictPolicy;     //!< Default: POLICY_GREEDY
+  uint64_t dChoiceParam;        //!< Default: 3
+  bool randomIOTweak;           //!< Default: true
 
-  REFRESH_POLICY refreshPolicy;
-  uint64_t refreshThreshold;
+  REFRESH_POLICY refreshPolicy; //!< Default: POLICY_NONE
+  uint64_t refreshThreshold;    //!< Default: 10000000
+
+  uint32_t randomSeed;          //!< Default: 0
+  float temperature;            //!< Default: 25
+  float coeffA;                 //!< Default: 11.391   
+  float coeffB;                 //!< Default: 77.38
+  float constA;                 //!< Default: 3.4783
+  float constB;                 //!< Default: 78.673
+  float errorSigma;                  //!< Default: 2
 
  public:
   Config();

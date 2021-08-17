@@ -42,6 +42,14 @@ const char NAME_USE_RANDOM_IO_TWEAK[] = "EnableRandomIOTweak";
 const char NAME_REFRESH_POLICY[] = "RefreshPolicy";
 const char NAME_REFRESH_THREHSHOLD[] = "RefreshThreshold";
 
+const char NAME_TEMPERATURE[] = "Temperature";
+const char NAME_COEFFICIENT_A[] = "CoefficientA";
+const char NAME_COEFFICIENT_B[] = "CoefficientB";
+const char NAME_CONSTANT_A[] = "ConstantA";
+const char NAME_CONSTANT_B[] = "ConstantB";
+const char NAME_ERROR_SIGMA[] = "ErrorSigma";
+const char NAME_RANDOM_SEED[] = "RandomSeed";
+
 Config::Config() {
   mapping = PAGE_MAPPING;
   overProvision = 0.25f;
@@ -59,6 +67,14 @@ Config::Config() {
 
   refreshPolicy = POLICY_NONE;
   refreshThreshold = 10000000;
+
+  temperature = 25;
+  coeffA = 11.391;
+  coeffB = 77.38;
+  constA = 3.4783;
+  constB = 78.673;
+  errorSigma = 2;
+  randomSeed = 0;
 }
 
 bool Config::setConfig(const char *name, const char *value) {
@@ -103,12 +119,36 @@ bool Config::setConfig(const char *name, const char *value) {
   else if (MATCH_NAME(NAME_USE_RANDOM_IO_TWEAK)) {
     randomIOTweak = convertBool(value);
   }
+
   else if (MATCH_NAME(NAME_REFRESH_POLICY)) {
     refreshPolicy = (REFRESH_POLICY)strtoul(value, nullptr, 10);
   }
   else if (MATCH_NAME(NAME_REFRESH_THREHSHOLD)) {
     refreshThreshold = strtoul(value, nullptr, 10);
   }
+  
+  else if (MATCH_NAME(NAME_TEMPERATURE)) {
+    temperature = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_COEFFICIENT_A)) {
+    coeffA = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_COEFFICIENT_B)) {
+    coeffB = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_CONSTANT_A)) {
+    constA = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_CONSTANT_B)) {
+    constB = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_ERROR_SIGMA)) {
+    errorSigma = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_RANDOM_SEED)) {
+    randomSeed = strtoul(value, nullptr, 10);
+  }
+  
   else {
     ret = false;
   }
@@ -171,9 +211,12 @@ uint64_t Config::readUint(uint32_t idx) {
     case FTL_GC_D_CHOICE_PARAM:
       ret = dChoiceParam;
       break;
+
     case FTL_REFRESH_THRESHOLD:
       ret = refreshThreshold;
       break;
+    case FTL_RANDOM_SEED:
+      ret = randomSeed;
   }
 
   return ret;
@@ -198,6 +241,24 @@ float Config::readFloat(uint32_t idx) {
     case FTL_GC_RECLAIM_THRESHOLD:
       ret = reclaimThreshold;
       break;
+
+    case FTL_TEMPERATURE:
+      ret = temperature;
+      break;
+    case FTL_COEFFICIENT_A:
+      ret = coeffA;
+      break;
+    case FTL_COEFFICIENT_B:
+      ret = coeffB;
+      break;
+    case FTL_CONSTANT_A:
+      ret = constA;
+      break;
+    case FTL_CONSTANT_B:
+      ret = constB;
+      break;
+    case FTL_ERROR_SIGMA:
+      ret = errorSigma;
   }
 
   return ret;

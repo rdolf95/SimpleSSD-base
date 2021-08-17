@@ -19,6 +19,8 @@
 
 #include "igl/trace/trace_replayer.hh"
 
+#include <utility>
+
 #include "simplessd/sim/trace.hh"
 #include "simplessd/util/algorithm.hh"
 
@@ -145,23 +147,7 @@ void TraceReplayer::init(uint64_t bytesize, uint32_t bs) {
 void TraceReplayer::begin() {
   initTime = engine.getCurrentTick();
 
-  parseLine();
-
-  if (mode == MODE_STRICT) {
-    firstTick = linedata.tick;
-  }
-  else {
-    firstTick = initTime;
-  }
-
-  if (reserveTermination) {
-    SimpleSSD::warn("No I/O submitted. Check regular expression.");
-
-    endCallback();
-  }
-  else {
-    submitIO();
-  }
+  submitIO();
 }
 
 void TraceReplayer::printStats(std::ostream &out) {
@@ -278,9 +264,14 @@ BIL::BIO_TYPE TraceReplayer::getType(std::string type) {
   return BIL::BIO_NUM;
 }
 
-void TraceReplayer::parseLine() {
+void TraceReplayer::handleNextLine() {
   std::string line;
   std::smatch match;
+
+  if (reserveTermination) {
+    // Nothing to do
+    return;
+  }
 
   // Read line
   while (true) {
@@ -309,71 +300,95 @@ void TraceReplayer::parseLine() {
   }
 
   // Get time
-  linedata.tick = mergeTime(match);
+  const uint64_t tick = mergeTime(match);
+
+  // mjo: Firstly initialize the variable
+  if (firstTick == std::numeric_limits<uint64_t>::max()) {
+    if (mode == MODE_STRICT) {
+      firstTick = tick;  // Only used by MODE_STRICT
+    }
+    else {
+      firstTick = initTime;
+    }
+  }
+
+  BIL::BIO bio;
 
   // Fill BIO
   if (useLBAOffset) {
-    linedata.offset = strtoul(match[groupID[ID_LBA_OFFSET]].str().c_str(),
-                              nullptr, useHex ? 16 : 10) *
-                      lbaSize;
+    bio.offset = strtoul(match[groupID[ID_LBA_OFFSET]].str().c_str(), nullptr,
+                         useHex ? 16 : 10) *
+                 lbaSize;
   }
   else {
-    linedata.offset = strtoul(match[groupID[ID_BYTE_OFFSET]].str().c_str(),
-                              nullptr, useHex ? 16 : 10);
+    bio.offset = strtoul(match[groupID[ID_BYTE_OFFSET]].str().c_str(), nullptr,
+                         useHex ? 16 : 10);
   }
 
   if (useLBALength) {
-    linedata.length = strtoul(match[groupID[ID_LBA_LENGTH]].str().c_str(),
-                              nullptr, useHex ? 16 : 10) *
-                      lbaSize;
+    bio.length = strtoul(match[groupID[ID_LBA_LENGTH]].str().c_str(), nullptr,
+                         useHex ? 16 : 10) *
+                 lbaSize;
   }
   else {
-    linedata.length = strtoul(match[groupID[ID_BYTE_LENGTH]].str().c_str(),
-                              nullptr, useHex ? 16 : 10);
+    bio.length = strtoul(match[groupID[ID_BYTE_LENGTH]].str().c_str(), nullptr,
+                         useHex ? 16 : 10);
   }
 
   // This function increases I/O count
-  linedata.type = getType(match[groupID[ID_OPERATION]].str());
+  bio.type = getType(match[groupID[ID_OPERATION]].str());
+  bio.callback = completionEvent;
+  bio.id = io_count;
+
+  // Limit check
+  if (io_count == max_io) {
+    reserveTermination = true;
+    // DO NOT RETURN HERE
+  }
+
+  // Range check
+  if (bio.offset + bio.length > ssdSize) {
+    SimpleSSD::warn("I/O %" PRIu64 ": I/O out of range", bio.id);
+
+    while (bio.offset >= ssdSize) {
+      bio.offset -= ssdSize;
+    }
+
+    if (bio.offset + bio.length > ssdSize) {
+      bio.length = ssdSize - bio.offset;
+    }
+  }
+
+  io_submitted += bio.length;
+  io_depth++;
+
+  if (mode == MODE_STRICT) {
+    if (io_depth == maxQueueDepth) {
+      if (!pBackup) {
+        pBackup = std::make_unique<backup_t>(submitEvent, tick - firstTick + initTime);
+      }
+      else {
+        SimpleSSD::panic("pBackup cannot be overriden since This is a "
+                         "single-threaded program!");
+      }
+    }
+    else if (io_depth > maxQueueDepth) {
+      SimpleSSD::panic("io_depth cannot be bigger than maxQueueDepth since "
+                       "This is a single-threaded program!");
+    }
+    else {
+      engine.scheduleEvent(submitEvent, tick - firstTick + initTime);
+    }
+  }
+
+  bioEntry.submitIO(bio);
 }
 
 void TraceReplayer::submitIO() {
-  BIL::BIO bio;
+  handleNextLine();
 
-  if (linedata.type == BIL::BIO_NUM) {
-    SimpleSSD::panic("Unexpected request type.");
-  }
-
-  bio.callback = completionEvent;
-  bio.id = io_count;
-  bio.type = linedata.type;
-  bio.offset = linedata.offset;
-  bio.length = linedata.length;
-
-  bioEntry.submitIO(bio);
-
-  io_depth++;
-
-  if ((max_io != 0 && io_count >= max_io)) {
-    reserveTermination = true;
-
-    return;
-  }
-
-  parseLine();
-
-  if (reserveTermination) {
-    return;
-  }
-
-  switch (mode) {
-    case MODE_STRICT:
-      engine.scheduleEvent(submitEvent, linedata.tick - firstTick + initTime);
-      break;
-    case MODE_ASYNC:
-      rescheduleSubmit(submissionLatency);
-      break;
-    default:
-      break;
+  if (mode == MODE_ASYNC) {
+    rescheduleSubmit(submissionLatency);
   }
 }
 
@@ -385,6 +400,16 @@ void TraceReplayer::iocallback(uint64_t) {
     if (io_depth == 0) {
       endCallback();
     }
+  }
+
+  // mjo: restore
+  // pBackup is another flow-control flag since at the beginning of the program
+  // it consumes the event queue too fast.
+  if (mode == MODE_STRICT && !io_depth && pBackup) {
+    auto submitEvent = pBackup->first;
+    auto tick = pBackup->second;
+    pBackup.reset(nullptr);
+    engine.scheduleEvent(submitEvent, tick);
   }
 
   if (mode == MODE_SYNC || nextIOIsSync) {

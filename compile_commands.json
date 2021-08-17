@@ -1,167 +1,167 @@
 [
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/bil/entry.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/entry.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/bil/entry.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/entry.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/entry.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/bil/noop_scheduler.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/noop_scheduler.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/bil/noop_scheduler.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/noop_scheduler.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/bil/noop_scheduler.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/igl/request/request_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_config.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/igl/request/request_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_config.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_config.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/igl/request/request_generator.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_generator.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/igl/request/request_generator.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_generator.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/request/request_generator.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/igl/trace/trace_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_config.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/igl/trace/trace_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_config.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_config.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/igl/trace/trace_replayer.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_replayer.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/igl/trace/trace_replayer.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_replayer.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/igl/trace/trace_replayer.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CAHelpers.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CAHelpers.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CAHelpers.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CAHelpers.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CAHelpers.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CmdHandlers.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdHandlers.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CmdHandlers.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdHandlers.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdHandlers.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CmdScheduler.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdScheduler.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CmdScheduler.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdScheduler.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CmdScheduler.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CommandAnalysis.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CommandAnalysis.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/CommandAnalysis.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CommandAnalysis.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/CommandAnalysis.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemArchitectureSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemArchitectureSpec.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemArchitectureSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemArchitectureSpec.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemArchitectureSpec.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemBankWiseParams.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemBankWiseParams.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemBankWiseParams.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemBankWiseParams.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemBankWiseParams.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemCommand.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemCommand.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemCommand.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemCommand.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemCommand.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemoryPowerModel.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemoryPowerModel.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemoryPowerModel.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemoryPowerModel.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemoryPowerModel.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemorySpecification.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemorySpecification.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemorySpecification.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemorySpecification.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemorySpecification.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemPowerSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemPowerSpec.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemPowerSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemPowerSpec.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemPowerSpec.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemTimingSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemTimingSpec.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/MemTimingSpec.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemTimingSpec.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/MemTimingSpec.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/Parameter.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parameter.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/Parameter.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parameter.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parameter.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/Parametrisable.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parametrisable.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/Parametrisable.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parametrisable.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/Parametrisable.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/TraceParser.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/TraceParser.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/TraceParser.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/TraceParser.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/TraceParser.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/libdrampower/LibDRAMPower.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/libdrampower/LibDRAMPower.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/lib/drampower/src/libdrampower/LibDRAMPower.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/libdrampower/LibDRAMPower.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src/libdrampower/LibDRAMPower.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sil/none/none.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/none/none.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sil/none/none.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/none/none.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/none/none.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/nvme.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/nvme.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/nvme.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/nvme.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/nvme.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/prp.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/prp.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/prp.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/prp.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/prp.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/queue.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/queue.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sil/nvme/queue.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/queue.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sil/nvme/queue.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sim/cfg_reader.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/cfg_reader.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sim/cfg_reader.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/cfg_reader.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/cfg_reader.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sim/engine.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/engine.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sim/engine.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/engine.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/engine.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sim/global_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/global_config.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sim/global_config.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/global_config.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/global_config.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sim/main.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/main.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sim/main.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/main.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/main.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/sim/signal.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/signal.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/sim/signal.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/signal.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/sim/signal.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/util/convert.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/convert.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/util/convert.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/convert.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/convert.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/util/print.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/print.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/util/print.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/print.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/print.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base",
-  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd-standalone.dir/util/stopwatch.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/stopwatch.cc",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -rdynamic -pthread -Wall -Wextra -Werror    -std=gnu++14 -o CMakeFiles/simplessd-standalone.dir/util/stopwatch.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/stopwatch.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/util/stopwatch.cc"
 },
 {
@@ -203,6 +203,11 @@
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd",
   "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/mcpat -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/mcpat/cacti -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/inih -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -g -rdynamic -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd.dir/ftl/page_mapping.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/ftl/page_mapping.cc",
   "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/ftl/page_mapping.cc"
+},
+{
+  "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd",
+  "command": "/usr/bin/c++   -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/mcpat -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/mcpat/cacti -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/lib/inih -I/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/lib/drampower/src  -O2 -g -rdynamic -Wall -Wextra -Werror    -std=gnu++11 -o CMakeFiles/simplessd.dir/ftl/error_modeling.cc.o -c /home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/ftl/error_modeling.cc",
+  "file": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/ftl/error_modeling.cc"
 },
 {
   "directory": "/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd",

@@ -61,6 +61,19 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
 
   bRandomTweak = conf.readBoolean(CONFIG_FTL, FTL_USE_RANDOM_IO_TWEAK);
   bitsetSize = bRandomTweak ? param.ioUnitInPage : 1;
+
+  float tmp = conf.readFloat(CONFIG_FTL, FTL_TEMPERATURE);
+  float Ea = 1.1;
+  float coeffA = conf.readFloat(CONFIG_FTL, FTL_COEFFICIENT_A);
+  float coeffB = conf.readFloat(CONFIG_FTL, FTL_COEFFICIENT_B);
+  float constA = conf.readFloat(CONFIG_FTL, FTL_CONSTANT_A);
+  float constB = conf.readFloat(CONFIG_FTL, FTL_CONSTANT_B);
+  float sigma = conf.readFloat(CONFIG_FTL, FTL_ERROR_SIGMA);
+  uint32_t seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
+
+
+  errorModel = ErrorModeling(tmp, Ea, coeffA, coeffB, 
+                             constA, constB, sigma, seed);
 }
 
 PageMapping::~PageMapping() {}
@@ -336,6 +349,9 @@ uint32_t PageMapping::getFreeBlock(uint32_t idx) {
 
     blocks.emplace(blockIndex, std::move(*iter));
 
+    // Update first write time
+    blocks.find(blockIndex)->second.setLastWrittenTime(getTick());
+
     // Remove found block from free block list
     freeBlocks.erase(iter);
     nFreeBlocks--;
@@ -579,7 +595,8 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
             stat.validPageCopies++;
           }
         }
-
+        // TODO : this will updated for every write. The refresh should be done only for first write
+        //freeBlock->second.setLastWrittenTime(tick);   
         stat.validSuperPageCopies++;
       }
     }
@@ -644,7 +661,7 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
   }
 
 
-  while (freeBlockRatio() < gcThreshold) {
+  while (nFreeBlocks < blocksToRefresh.size() * 1.5) {
     
     debugprint(LOG_FTL_PAGE_MAPPING, "gcThreshold : %lf", gcThreshold);
     debugprint(LOG_FTL_PAGE_MAPPING, "freeBlockRatio : %lf", freeBlockRatio());
@@ -653,12 +670,14 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
     std::vector<uint32_t> list;
     uint64_t beginAt = tick;
 
-    selectVictimBlock(list, beginAt, blocksToRefresh);
+    std::vector<uint32_t> dummy;
+
+    selectVictimBlock(list, beginAt, dummy);
 
     // If the block would be garbage collected, it shouldn't be refeshed
     for (auto & gcIter : list) {
-      debugprint(LOG_FTL_PAGE_MAPPING, "Block %u will be garbage collected", gcIter);
-      //blocksToRefresh.erase(std::remove(blocksToRefresh.begin(), blocksToRefresh.end(), gcIter), blocksToRefresh.end());
+      //debugprint(LOG_FTL_PAGE_MAPPING, "Block %u will be garbage collected", gcIter);
+      blocksToRefresh.erase(std::remove(blocksToRefresh.begin(), blocksToRefresh.end(), gcIter), blocksToRefresh.end());
     }
     
 
@@ -672,18 +691,18 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
               beginAt, beginAt - tick);
     stat.gcCount++;
     stat.reclaimedBlocks += list.size();
-    debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks after gc : %u", nFreeBlocks);
+    //debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks after gc : %u", nFreeBlocks);
 
     //** Problem : refresh 될 block이 garbage collection에 의해 erase 될 수 있음
   }
   
-  debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
+  //debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
   // For all blocks to reclaim, collecting request structure only
   for (auto &iter : blocksToRefresh) {
     auto block = blocks.find(iter);
 
     if (block == blocks.end()) {
-      debugprint(LOG_FTL_PAGE_MAPPING, "Cannot find block %u", iter);
+      printf("Cannot find block %u", iter);
       panic("Invalid block, refresh failed");
     }
 
@@ -715,7 +734,7 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
 
         for (uint32_t idx = 0; idx < bitsetSize; idx++) {
           if (bit.test(idx)) {    
-            debugprint(LOG_FTL_PAGE_MAPPING, "in the if statement");
+            //debugprint(LOG_FTL_PAGE_MAPPING, "in the if statement");
             // Invalidate
             block->second.invalidate(pageIndex, idx); // 여기서 out of range error
             //debugprint(LOG_FTL_PAGE_MAPPING, "Invalidated");
@@ -763,7 +782,7 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
           }
         }
         //debugprint(LOG_FTL_PAGE_MAPPING, "set last written time");
-        freeBlock->second.setLastWrittenTime(tick);
+        //freeBlock->second.setLastWrittenTime(tick);
 
         stat.refreshSuperPageCopies++;
       }
@@ -771,7 +790,7 @@ void PageMapping::doRefresh(std::vector<uint32_t> &blocksToRefresh,
     // TODO: Should be garbage collected when there is not enough blocks
     // Or write should be performed by writeInternal
   }
-  debugprint(LOG_FTL_PAGE_MAPPING, "Do actual I/O");
+  //debugprint(LOG_FTL_PAGE_MAPPING, "Do actual I/O");
   // Do actual I/O here
   // This handles PAL2 limitation (SIGSEGV, infinite loop, or so-on)
   for (auto &iter : readRequests) {
@@ -998,7 +1017,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
   }
 
   // TODO: Have to record for each page
-  block->second.setLastWrittenTime(tick);
+  //block->second.setLastWrittenTime(tick);
 
   // Exclude CPU operation when initializing
   if (sendToPAL) {
@@ -1033,7 +1052,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     stat.gcCount++;
     stat.reclaimedBlocks += list.size();
   }
-  /*
+  
   if (tick - lastRefreshed > 1000000000 && sendToPAL){  // check every 1ms
 
     std::vector<uint32_t> list;
@@ -1050,13 +1069,12 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
                "REFRESH   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
                beginAt, beginAt - tick);
 
-    stat.refreshCount++;
-    stat.refreshedBlocks += list.size();
-
+    if (list.size() > 0) {
+      stat.refreshCount++;
+      stat.refreshedBlocks += list.size();
+    }
     lastRefreshed = tick;
   }
-  */
-  
 }
 
 void PageMapping::trimInternal(Request &req, uint64_t &tick) {

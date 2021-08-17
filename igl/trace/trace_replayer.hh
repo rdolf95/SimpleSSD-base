@@ -37,6 +37,9 @@ namespace IGL {
 
 class TraceReplayer : public IOGenerator {
  private:
+	 using backup_t = std::pair<SimpleSSD::Event, uint64_t>;
+	 std::unique_ptr<backup_t> pBackup = nullptr;
+
   enum {
     ID_OPERATION,
     ID_BYTE_OFFSET,
@@ -89,17 +92,8 @@ class TraceReplayer : public IOGenerator {
 
   uint64_t mergeTime(std::smatch &);
   BIL::BIO_TYPE getType(std::string);
-  void parseLine();
+  void handleNextLine();
   void rescheduleSubmit(uint64_t);
-
-  struct TraceLine {
-    uint64_t tick;
-    uint64_t offset;
-    uint64_t length;
-    BIL::BIO_TYPE type;
-
-    TraceLine() : tick(0), offset(0), length(0), type(BIL::BIO_NUM) {}
-  } linedata;
 
   SimpleSSD::Event submitEvent;
   SimpleSSD::EventFunction completionEvent;
