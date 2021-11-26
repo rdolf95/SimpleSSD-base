@@ -42,13 +42,18 @@ const char NAME_USE_RANDOM_IO_TWEAK[] = "EnableRandomIOTweak";
 const char NAME_REFRESH_POLICY[] = "RefreshPolicy";
 const char NAME_REFRESH_THREHSHOLD[] = "RefreshThreshold";
 
+const char NAME_INIT_ERASE_COUNT[] = "InitialPECycle";
+
 const char NAME_TEMPERATURE[] = "Temperature";
-const char NAME_COEFFICIENT_A[] = "CoefficientA";
-const char NAME_COEFFICIENT_B[] = "CoefficientB";
-const char NAME_CONSTANT_A[] = "ConstantA";
-const char NAME_CONSTANT_B[] = "ConstantB";
+const char NAME_EPSILON[] = "Epsilon";
+const char NAME_ALPHA[] = "Alpha";
+const char NAME_BETA[] = "Beta";
+const char NAME_KTERM[] = "Kterm";
+const char NAME_MTERM[] = "Mterm";
+const char NAME_NTERM[] = "Nterm";
 const char NAME_ERROR_SIGMA[] = "ErrorSigma";
 const char NAME_RANDOM_SEED[] = "RandomSeed";
+
 
 Config::Config() {
   mapping = PAGE_MAPPING;
@@ -69,12 +74,15 @@ Config::Config() {
   refreshThreshold = 10000000;
 
   temperature = 25;
-  coeffA = 11.391;
-  coeffB = 77.38;
-  constA = 3.4783;
-  constB = 78.673;
+  epsilon = 0.00148;
+  alpha = 3.9E-10;
+  beta = 0.0000628;
+  kTerm = 2.05;
+  mTerm = 0.14;
+  nTerm = 0.54;
   errorSigma = 2;
   randomSeed = 0;
+  initEraseCount = 0;
 }
 
 bool Config::setConfig(const char *name, const char *value) {
@@ -130,23 +138,32 @@ bool Config::setConfig(const char *name, const char *value) {
   else if (MATCH_NAME(NAME_TEMPERATURE)) {
     temperature = strtof(value, nullptr);
   }
-  else if (MATCH_NAME(NAME_COEFFICIENT_A)) {
-    coeffA = strtof(value, nullptr);
+  else if (MATCH_NAME(NAME_EPSILON)) {
+    epsilon = strtof(value, nullptr);
   }
-  else if (MATCH_NAME(NAME_COEFFICIENT_B)) {
-    coeffB = strtof(value, nullptr);
+  else if (MATCH_NAME(NAME_ALPHA)) {
+    alpha = strtof(value, nullptr);
   }
-  else if (MATCH_NAME(NAME_CONSTANT_A)) {
-    constA = strtof(value, nullptr);
+  else if (MATCH_NAME(NAME_BETA)) {
+    beta = strtof(value, nullptr);
   }
-  else if (MATCH_NAME(NAME_CONSTANT_B)) {
-    constB = strtof(value, nullptr);
+  else if (MATCH_NAME(NAME_KTERM)) {
+    kTerm = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_MTERM)) {
+    mTerm = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_NTERM)) {
+    nTerm = strtof(value, nullptr);
   }
   else if (MATCH_NAME(NAME_ERROR_SIGMA)) {
     errorSigma = strtof(value, nullptr);
   }
   else if (MATCH_NAME(NAME_RANDOM_SEED)) {
     randomSeed = strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_INIT_ERASE_COUNT)) {
+    initEraseCount = strtoul(value, nullptr, 10);
   }
   
   else {
@@ -217,6 +234,10 @@ uint64_t Config::readUint(uint32_t idx) {
       break;
     case FTL_RANDOM_SEED:
       ret = randomSeed;
+      break;
+    case FTL_INITIAL_ERASE_COUNT:
+      ret = initEraseCount;
+      break;
   }
 
   return ret;
@@ -245,20 +266,27 @@ float Config::readFloat(uint32_t idx) {
     case FTL_TEMPERATURE:
       ret = temperature;
       break;
-    case FTL_COEFFICIENT_A:
-      ret = coeffA;
+    case FTL_EPSILON:
+      ret = epsilon;
       break;
-    case FTL_COEFFICIENT_B:
-      ret = coeffB;
+    case FTL_ALPHA:
+      ret = alpha;
       break;
-    case FTL_CONSTANT_A:
-      ret = constA;
+    case FTL_BETA:
+      ret = beta;
       break;
-    case FTL_CONSTANT_B:
-      ret = constB;
+    case FTL_KTERM:
+      ret = kTerm;
+      break;
+    case FTL_MTERM:
+      ret = mTerm;
+      break;
+    case FTL_NTERM:
+      ret = nTerm;
       break;
     case FTL_ERROR_SIGMA:
       ret = errorSigma;
+      break;
   }
 
   return ret;

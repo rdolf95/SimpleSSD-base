@@ -36,7 +36,8 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit)
       ppLPNs(nullptr),
       lastAccessed(0),
       eraseCount(0),
-      lastWritten(0){
+      lastWritten(0),
+      maxErrorCount(0){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -66,6 +67,47 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit)
   eraseCount = 0;
 }
 
+Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit, uint32_t initPE)
+    : idx(blockIdx),
+      pageCount(count),
+      ioUnitInPage(ioUnit),
+      pValidBits(nullptr),
+      pErasedBits(nullptr),
+      pLPNs(nullptr),
+      ppLPNs(nullptr),
+      lastAccessed(0),
+      eraseCount(0),
+      lastWritten(0),
+      maxErrorCount(0){
+  if (ioUnitInPage == 1) {
+    pValidBits = new Bitset(pageCount);
+    pErasedBits = new Bitset(pageCount);
+
+    pLPNs = (uint64_t *)calloc(pageCount, sizeof(uint64_t));
+  }
+  else if (ioUnitInPage > 1) {
+    Bitset copy(ioUnitInPage);
+
+    validBits = std::vector<Bitset>(pageCount, copy);
+    erasedBits = std::vector<Bitset>(pageCount, copy);
+
+    ppLPNs = (uint64_t **)calloc(pageCount, sizeof(uint64_t *));
+
+    for (uint32_t i = 0; i < pageCount; i++) {
+      ppLPNs[i] = (uint64_t *)calloc(ioUnitInPage, sizeof(uint64_t));
+    }
+  }
+  else {
+    panic("Invalid I/O unit in page");
+  }
+
+  // C-style allocation
+  pNextWritePageIndex = (uint32_t *)calloc(ioUnitInPage, sizeof(uint32_t));
+
+  erase();
+  eraseCount = initPE;
+}
+
 Block::Block(const Block &old)
     : Block(old.idx, old.pageCount, old.ioUnitInPage) {
   if (ioUnitInPage == 1) {
@@ -89,6 +131,7 @@ Block::Block(const Block &old)
   eraseCount = old.eraseCount;
   
   lastWritten = old.lastWritten;
+  maxErrorCount = old.maxErrorCount;
 }
 
 Block::Block(Block &&old) noexcept
@@ -104,7 +147,8 @@ Block::Block(Block &&old) noexcept
       ppLPNs(std::move(old.ppLPNs)),
       lastAccessed(std::move(old.lastAccessed)),
       eraseCount(std::move(old.eraseCount)),
-      lastWritten(std::move(old.lastWritten)) {
+      lastWritten(std::move(old.lastWritten)),
+      maxErrorCount(std::move(old.maxErrorCount)) {
   // TODO Use std::exchange to set old value to null (C++14)
   old.idx = 0;
   old.pageCount = 0;
@@ -117,6 +161,7 @@ Block::Block(Block &&old) noexcept
   old.lastAccessed = 0;
   old.eraseCount = 0;
   old.lastWritten = 0;
+  old.maxErrorCount = 0;
 }
 
 Block::~Block() {
@@ -167,6 +212,7 @@ Block &Block::operator=(Block &&rhs) {
     lastAccessed = std::move(rhs.lastAccessed);
     eraseCount = std::move(rhs.eraseCount);
     lastWritten = std::move(rhs.lastWritten);
+    maxErrorCount = std::move(rhs.maxErrorCount);
 
     rhs.pNextWritePageIndex = nullptr;
     rhs.pValidBits = nullptr;
@@ -176,6 +222,7 @@ Block &Block::operator=(Block &&rhs) {
     rhs.lastAccessed = 0;
     rhs.eraseCount = 0;
     rhs.lastWritten = 0;
+    rhs.maxErrorCount = 0;
   }
 
   return *this;
@@ -199,6 +246,19 @@ uint64_t Block::getLastWrittenTime() {
 
 void Block::setLastWrittenTime(uint64_t lastWritten) {
   this->lastWritten = lastWritten;
+}
+
+void Block::setEraseCount(uint32_t eraseCount){
+  this->eraseCount = eraseCount;
+}
+
+
+void Block::setMaxErrorCount(uint64_t maxError){
+  this->maxErrorCount = maxError;
+}
+
+uint64_t Block::getMaxErrorCount(){
+  return maxErrorCount;
 }
 
 uint32_t Block::getValidPageCount() {

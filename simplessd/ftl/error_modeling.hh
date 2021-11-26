@@ -31,31 +31,49 @@ namespace FTL {
 class ErrorModeling {
  private:
 
+  uint32_t pageSize;
+
   float temperature;
   float roomTemp;
   float activationEnergy;
 
+  /*
   float coeffA; // coeff for A
   float coeffB; // coeff for B
 
   float constA; // const term for A
   float constB; // const term for B
+  */
+
+  float epsilon;
+  float alpha;
+  float beta;
+  float k;
+  float m;
+  float n;
+
+  std::vector<float> layerFactor;
   
   float sigma;
   std::mt19937 generator;
 
   float arrhenius(float);   // convert time in high temp to time in room temp
-  float getAterm(uint32_t);
-  float getBterm(uint32_t);
+  float getAterm(float);
+  float getBterm(float);
+
+  float getLayerFactor(uint32_t);
+
 
 
  public:
   ErrorModeling();
-  ErrorModeling(float, float, float, float, float, float, float, uint32_t);
+  ErrorModeling(float, float, float, float, float, 
+                               float, float, float, float, uint32_t, uint32_t);
   ~ErrorModeling();
   void setTemperature(float);
 
-  float getRBER(float, float);
+  //float getRBER(float, float);
+  float getRBER(float, float, uint32_t);
   uint32_t getRandError(float, float, uint32_t);
 };
 

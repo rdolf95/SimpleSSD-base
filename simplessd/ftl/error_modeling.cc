@@ -1,6 +1,8 @@
 #include "ftl/error_modeling.hh"
 #include "util/algorithm.hh"
 
+#include <iostream>
+#include <fstream>
 
 
 namespace SimpleSSD {
@@ -10,23 +12,47 @@ namespace FTL {
 ErrorModeling::ErrorModeling(){}
 
 ErrorModeling::ErrorModeling(float temperature, float activationEnergy,
-                             float coeffA, float coeffB,
-                             float constA, float constB, 
-                             float sigma, uint32_t seed) {
+                             float epsilon, float alpha, float beta, 
+                             float k, float m, float n, 
+                             float sigma, uint32_t pageSize, uint32_t seed) {
 
   this->roomTemp = 25 + 273.15;
   this->temperature = temperature + 273.15;
   this->activationEnergy = activationEnergy;
 
-  this->coeffA = coeffA / 1000;
-  this->coeffB = coeffB / 1000;
-  this->constA = constA / 1000;
-  this->constA = constB / 1000;
+  this->epsilon = epsilon;
+  this->alpha = alpha;
+  this->beta = beta;
+
+  this->k = k;
+  this->m = m;
+  this->n = n;
 
   this->sigma = sigma;
+  this->pageSize = pageSize;
 
   this-> generator = std::mt19937(seed);
- 
+
+  this->layerFactor = std::vector<float>(64);
+  //std::cout << "epsilon " << epsilon << std::endl;
+  //std::cout << "alpha " << alpha << std::endl;
+  //std::cout << "beta " << beta << std::endl;
+  //std::cout << "k " << k << std::endl;
+  //std::cout << "m " << m << std::endl;
+  //std::cout << "n " << n << std::endl;
+  
+  // read File
+  std::ifstream layerFile;
+  layerFile.open("/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/simplessd/ftl/layer_factor.txt");
+  std::string line;
+  for(int i=0; i<64; i++){
+    std::getline(layerFile, line);
+    layerFactor[i] = std::stof(line);
+    //std::cout << "layer factor " << i<< " " << layerFactor[i] << std::endl;
+  }
+  layerFile.close();
+  
+  
 }
 
 ErrorModeling::~ErrorModeling() {}
@@ -34,29 +60,39 @@ ErrorModeling::~ErrorModeling() {}
 void ErrorModeling::setTemperature(float newTemp) {
   temperature = newTemp;
 }
-
-float ErrorModeling::getAterm(uint32_t peCycle) {
+/*
+float ErrorModeling::getAterm(float peCycle) {
   float result;
 
   if (peCycle < 1) {
       peCycle = 1;
   }
 
-  result = coeffA * log(peCycle) + constA;
+  //result = coeffA * log(peCycle) + constA;
+  result = coeffA * peCycle + constA;
 
   return result;
 }
 
-float ErrorModeling::getBterm(uint32_t peCycle) {
+float ErrorModeling::getBterm(float peCycle) {
   float result;
 
   if (peCycle < 1) {
       peCycle = 1;
   }
 
-  result = coeffB * log(peCycle) + constB;
+  result = coeffB * peCycle + constB;
+  
+  //result = coeffB * log(peCycle) + constB;
+  //result = coeffB * peCycle + constB;
+
 
   return result;
+}
+*/
+
+float ErrorModeling::getLayerFactor(uint32_t layer){
+  return layerFactor[layer];
 }
 
 float ErrorModeling::arrhenius(float t2){
@@ -70,23 +106,47 @@ float ErrorModeling::arrhenius(float t2){
   return t1;
 }
 
-float ErrorModeling::getRBER(float retentionTime, float peCycle){
+/*
+Error model :
+  average RBER = epsilon + alpha * PE^k + beta * PE^m * retention time^n
+  RBER = avg(RBER) * layer_factor
+*/
+float ErrorModeling::getRBER(float retentionTime, float peCycle, uint32_t layer){
   
   float rber;
-  float aTerm = getAterm(peCycle);
-  float bTerm = getBterm(peCycle);
+  //float aTerm = getAterm(peCycle);
+  //float bTerm = getBterm(peCycle);
+
+  //std::cout << "Aterm " << aTerm << std::endl;
+  //std::cout << "Bterm " << bTerm << std::endl;
 
   retentionTime = arrhenius(retentionTime); // convert to time in room temp
 
-  rber = aTerm * log(retentionTime) + bTerm;
+  retentionTime = retentionTime / 1000000000000 / 60 / 60 / 24; // time unit : day
+
+  //std::cout << "retentionTime " << retentionTime << std::endl;
+
+  //std::cout << "layer factor " << layerFactor[layer] << std::endl;
+
+  rber = epsilon + alpha * pow(peCycle, k) \
+         + beta * pow(peCycle, m) + pow(retentionTime, n);
+  
+  rber = rber * layerFactor[layer];  
+
+  //std::cout << "rber " << rber << std::endl;
 
   return rber;
 }
 
-uint32_t ErrorModeling::getRandError(float retentionTime, float peCycle,
-                                     uint32_t pageSize){
-  float rber = getRBER(retentionTime, peCycle);
 
+
+uint32_t ErrorModeling::getRandError(float retentionTime, float peCycle,
+                                     uint32_t layer){
+                                       
+  float rber = getRBER(retentionTime, peCycle, layer);
+  //std::cout << "rber " << rber << std::endl;
+  //std::cout << "pecycle " << peCycle << std::endl;
+  //std::cout << "retentionTime " << retentionTime << std::endl;
   
 
   float errorCount;

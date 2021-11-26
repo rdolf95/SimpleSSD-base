@@ -42,15 +42,21 @@ typedef enum {
   FTL_GC_D_CHOICE_PARAM,
   FTL_USE_RANDOM_IO_TWEAK,
 
+  /* Refresh configuration*/
   FTL_REFRESH_POLICY,
   FTL_REFRESH_THRESHOLD,
 
+  /*Initial configuration for experiment*/
+  FTL_INITIAL_ERASE_COUNT,
+
   /* Error modeling configuration */
   FTL_TEMPERATURE,
-  FTL_COEFFICIENT_A,
-  FTL_COEFFICIENT_B,
-  FTL_CONSTANT_A,
-  FTL_CONSTANT_B,
+  FTL_EPSILON,
+  FTL_ALPHA,
+  FTL_BETA,
+  FTL_KTERM,
+  FTL_MTERM,
+  FTL_NTERM,
   FTL_ERROR_SIGMA,
   FTL_RANDOM_SEED,
 
@@ -106,11 +112,14 @@ class Config : public BaseConfig {
 
   uint32_t randomSeed;          //!< Default: 0
   float temperature;            //!< Default: 25
-  float coeffA;                 //!< Default: 11.391   
-  float coeffB;                 //!< Default: 77.38
-  float constA;                 //!< Default: 3.4783
-  float constB;                 //!< Default: 78.673
+  float epsilon;                 //!< Default: 0.0000006175
+  float alpha;                 //!< Default: 0.00006636
+  float beta;                 //!< Default: 0.02416
+  float kTerm;                 //!< Default: -4.110
+  float mTerm;
+  float nTerm;
   float errorSigma;                  //!< Default: 2
+  uint32_t initEraseCount;      //!< Default : 0
 
  public:
   Config();

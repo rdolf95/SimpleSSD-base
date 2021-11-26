@@ -42,8 +42,11 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
   blocks.reserve(param.totalPhysicalBlocks);
   table.reserve(param.totalLogicalBlocks * param.pagesInBlock);
 
+  uint32_t initEraseCount = conf.readUint(CONFIG_FTL, FTL_INITIAL_ERASE_COUNT);
+
   for (uint32_t i = 0; i < param.totalPhysicalBlocks; i++) {
-    freeBlocks.emplace_back(Block(i, param.pagesInBlock, param.ioUnitInPage));
+    //freeBlocks.emplace_back(Block(i, param.pagesInBlock, param.ioUnitInPage));
+    freeBlocks.emplace_back(Block(i, param.pagesInBlock, param.ioUnitInPage, initEraseCount));
   }
 
   nFreeBlocks = param.totalPhysicalBlocks;
@@ -64,16 +67,19 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
 
   float tmp = conf.readFloat(CONFIG_FTL, FTL_TEMPERATURE);
   float Ea = 1.1;
-  float coeffA = conf.readFloat(CONFIG_FTL, FTL_COEFFICIENT_A);
-  float coeffB = conf.readFloat(CONFIG_FTL, FTL_COEFFICIENT_B);
-  float constA = conf.readFloat(CONFIG_FTL, FTL_CONSTANT_A);
-  float constB = conf.readFloat(CONFIG_FTL, FTL_CONSTANT_B);
+  float epsilon = conf.readFloat(CONFIG_FTL, FTL_EPSILON);
+  float alpha = conf.readFloat(CONFIG_FTL, FTL_ALPHA);
+  float beta = conf.readFloat(CONFIG_FTL, FTL_BETA);
+  float kTerm = conf.readFloat(CONFIG_FTL, FTL_KTERM);
+  float mTerm = conf.readFloat(CONFIG_FTL, FTL_MTERM);
+  float nTerm = conf.readFloat(CONFIG_FTL, FTL_NTERM);
   float sigma = conf.readFloat(CONFIG_FTL, FTL_ERROR_SIGMA);
   uint32_t seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
 
 
-  errorModel = ErrorModeling(tmp, Ea, coeffA, coeffB, 
-                             constA, constB, sigma, seed);
+  errorModel = ErrorModeling(tmp, Ea, epsilon, alpha, beta,
+                             kTerm, mTerm, nTerm, 
+                             sigma, param.pagesInBlock, seed);
 }
 
 PageMapping::~PageMapping() {}
@@ -352,11 +358,13 @@ uint32_t PageMapping::getFreeBlock(uint32_t idx) {
     // Update first write time
     blocks.find(blockIndex)->second.setLastWrittenTime(getTick());
 
+
     // Remove found block from free block list
     freeBlocks.erase(iter);
     nFreeBlocks--;
   }
   else {
+    std::cout << "nFreeBlock" << nFreeBlocks << std::endl;
     panic("No free block left");
   }
 
@@ -900,10 +908,28 @@ void PageMapping::readInternal(Request &req, uint64_t &tick) {
           block->second.read(palRequest.pageIndex, idx, beginAt);
           pPAL->read(palRequest, beginAt);
 
+          uint64_t lastWritten = block->second.getLastWrittenTime();
+          uint32_t eraseCount = block->second.getEraseCount();
+          uint64_t curErrorCount = block->second.getMaxErrorCount();
+
+          debugprint(LOG_FTL_PAGE_MAPPING, "Erase count %u", eraseCount);
+
+          //TODO: Get layer number
+          uint32_t layerNumber = mapping.second % 64;
+          uint64_t newErrorCount = errorModel.getRandError(tick - lastWritten, eraseCount, layerNumber);
+
+          debugprint(LOG_FTL_PAGE_MAPPING, "new rber: %f", errorModel.getRBER(tick - lastWritten, eraseCount, 0));
+          debugprint(LOG_FTL_PAGE_MAPPING, "new randerror: %u", newErrorCount);
+
+
+          block->second.setMaxErrorCount(max(curErrorCount, newErrorCount));
+
           finishedAt = MAX(finishedAt, beginAt);
         }
       }
     }
+
+
 
     tick = finishedAt;
     tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::READ_INTERNAL);
@@ -1202,6 +1228,20 @@ void PageMapping::calculateTotalPages(uint64_t &valid, uint64_t &invalid) {
   }
 }
 
+float PageMapping::calculateAverageError(){
+  uint64_t totalError = 0;
+  float validBlockCount = 0;
+
+  for (auto &iter : blocks) {
+    totalError = totalError + iter.second.getMaxErrorCount();  
+    validBlockCount = validBlockCount + 1;
+  }
+
+  float averageError = totalError / validBlockCount;
+
+  return averageError;
+}
+
 void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   Stats temp;
 
@@ -1237,12 +1277,20 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "Total copied valid pages during Refresh";
   list.push_back(temp);
 
+  temp.name = prefix + "page_mapping.refresh.error_counts";
+  temp.desc = "The average number of errors";
+  list.push_back(temp);
+
   // For the exact definition, see following paper:
   // Li, Yongkun, Patrick PC Lee, and John Lui.
   // "Stochastic modeling of large-scale solid-state storage systems: analysis,
   // design tradeoffs and optimization." ACM SIGMETRICS (2013)
   temp.name = prefix + "page_mapping.wear_leveling";
   temp.desc = "Wear-leveling factor";
+  list.push_back(temp);
+
+  temp.name = prefix + "page_mapping.freeBlock_counts";
+  temp.desc = "The number of free blocks left";
   list.push_back(temp);
 }
 
@@ -1257,7 +1305,10 @@ void PageMapping::getStatValues(std::vector<double> &values) {
   values.push_back(stat.refreshSuperPageCopies);
   values.push_back(stat.refreshPageCopies);
 
+  values.push_back(calculateAverageError());
   values.push_back(calculateWearLeveling());
+
+  values.push_back(nFreeBlocks);
 }
 
 void PageMapping::resetStatValues() {

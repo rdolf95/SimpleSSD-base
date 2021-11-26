@@ -51,9 +51,11 @@ class Block {
 
   // Refresh practice
   uint64_t lastWritten;
+  uint64_t maxErrorCount;
 
  public:
   Block(uint32_t, uint32_t, uint32_t);
+  Block(uint32_t, uint32_t, uint32_t, uint32_t);  // Initial PE cycle constructor
   Block(const Block &);      // Copy constructor
   Block(Block &&) noexcept;  // Move constructor
   ~Block();
@@ -76,8 +78,11 @@ class Block {
   void invalidate(uint32_t, uint32_t);
 
   // Refresh practice
+  void setEraseCount(uint32_t);
   uint64_t getLastWrittenTime();
   void setLastWrittenTime(uint64_t);
+  void setMaxErrorCount(uint64_t);
+  uint64_t getMaxErrorCount();
 };
 
 }  // namespace FTL
