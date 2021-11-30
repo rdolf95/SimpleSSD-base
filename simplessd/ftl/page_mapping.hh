@@ -91,6 +91,8 @@ class PageMapping : public AbstractFTL {
   void selectRefreshVictim(std::vector<uint32_t> &, uint64_t &);
   void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
                             const REFRESH_POLICY, uint64_t);
+
+  void refreshPage(uint32_t, uint32_t, uint64_t &);
   
   float calculateAverageError();
 

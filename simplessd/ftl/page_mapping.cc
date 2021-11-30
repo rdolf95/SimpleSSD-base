@@ -865,6 +865,161 @@ void PageMapping::selectRefreshVictim(std::vector<uint32_t> &list,
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::SELECT_VICTIM_BLOCK);
 }
 
+void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
+                              uint64_t &tick) {
+  PAL::Request req(param.ioUnitInPage);
+  std::vector<PAL::Request> readRequests;
+  std::vector<PAL::Request> writeRequests;
+  std::vector<PAL::Request> eraseRequests;
+  std::vector<uint64_t> lpns;
+  Bitset bit(param.ioUnitInPage);
+  uint64_t beginAt;
+  uint64_t readFinishedAt = tick;
+  uint64_t writeFinishedAt = tick;
+  uint64_t eraseFinishedAt = tick;
+
+  std::vector<uint64_t> tempLpns;
+  Bitset tempBit(param.ioUnitInPage);
+  static float gcThreshold = conf.readFloat(CONFIG_FTL, FTL_GC_THRESHOLD_RATIO);
+
+  if (freeBlockRatio() < gcThreshold) {
+
+    std::vector<uint32_t> list;
+    uint64_t beginAt = tick;
+
+    std::vector<uint32_t> dummy;
+    selectVictimBlock(list, beginAt, dummy);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "GC   | On-demand | %u blocks will be reclaimed", list.size());
+
+    doGarbageCollection(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
+               beginAt, beginAt - tick);
+
+    stat.gcCount++;
+    stat.reclaimedBlocks += list.size();
+  }
+  
+  //debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
+  // For all blocks to reclaim, collecting request structure only
+  auto block = blocks.find(blockIndex);
+
+  if (block == blocks.end()) {
+    printf("Cannot find block %u", blockIndex);
+    panic("Invalid block, refresh failed");
+  }
+
+  // Copy valid pages to free block
+  for (uint32_t pageIndex = layerNum; pageIndex < param.pagesInBlock; pageIndex += layerNum) {
+    //debugprint(LOG_FTL_PAGE_MAPPING, "Check valid");
+    // Valid?
+    if (block->second.getValidPageCount()) {
+      block->second.getPageInfo(pageIndex, lpns, bit);
+      if (!bRandomTweak) {
+        bit.set();
+      }
+
+      //debugprint(LOG_FTL_PAGE_MAPPING, "Retrive free block");
+
+      // Retrive free block
+      auto freeBlock = blocks.find(getLastFreeBlock(bit));
+
+      // Issue Read
+      req.blockIndex = block->first;
+      req.pageIndex = pageIndex;
+      req.ioFlag = bit;
+
+      readRequests.push_back(req);
+
+      //debugprint(LOG_FTL_PAGE_MAPPING, "Update mapping table");
+      // Update mapping table
+      uint32_t newBlockIdx = freeBlock->first;
+
+      for (uint32_t idx = 0; idx < bitsetSize; idx++) {
+        if (bit.test(idx)) {    
+          //debugprint(LOG_FTL_PAGE_MAPPING, "in the if statement");
+          // Invalidate
+          block->second.invalidate(pageIndex, idx); // 여기서 out of range error
+          //debugprint(LOG_FTL_PAGE_MAPPING, "Invalidated");
+
+
+          auto mappingList = table.find(lpns.at(idx));
+          //debugprint(LOG_FTL_PAGE_MAPPING, "Found mapping list");
+
+          if (mappingList == table.end()) {
+            panic("Invalid mapping table entry, refresh failed");
+          }
+
+          pDRAM->read(&(*mappingList), 8 * param.ioUnitInPage, tick);
+
+          auto &mapping = mappingList->second.at(idx);
+          //debugprint(LOG_FTL_PAGE_MAPPING, "Found mapping");
+
+          uint32_t newPageIdx = freeBlock->second.getNextWritePageIndex(idx);
+
+          mapping.first = newBlockIdx;
+          mapping.second = newPageIdx;
+
+
+          freeBlock->second.write(newPageIdx, lpns.at(idx), idx, beginAt);
+          //debugprint(LOG_FTL_PAGE_MAPPING, "Written block");
+
+          freeBlock->second.getPageInfo(newPageIdx, tempLpns, tempBit);
+          //debugprint(LOG_FTL_PAGE_MAPPING, "got page info");
+
+          // Issue Write
+          req.blockIndex = newBlockIdx;
+          req.pageIndex = newPageIdx;
+
+          if (bRandomTweak) {
+            req.ioFlag.reset();
+            req.ioFlag.set(idx);
+          }
+          else {
+            req.ioFlag.set();
+          }
+
+          writeRequests.push_back(req);
+
+          stat.refreshPageCopies++;
+        }
+      }
+      //debugprint(LOG_FTL_PAGE_MAPPING, "set last written time");
+      //freeBlock->second.setLastWrittenTime(tick);
+
+      stat.refreshSuperPageCopies++;
+    }
+  }
+  // TODO: Should be garbage collected when there is not enough blocks
+  // Or write should be performed by writeInternal
+
+  //debugprint(LOG_FTL_PAGE_MAPPING, "Do actual I/O");
+  // Do actual I/O here
+  // This handles PAL2 limitation (SIGSEGV, infinite loop, or so-on)
+  for (auto &iter : readRequests) {
+    beginAt = tick;
+
+    pPAL->read(iter, beginAt);
+
+    readFinishedAt = MAX(readFinishedAt, beginAt);
+  }
+
+  for (auto &iter : writeRequests) {
+    beginAt = readFinishedAt;
+
+    pPAL->write(iter, beginAt);
+
+    writeFinishedAt = MAX(writeFinishedAt, beginAt);
+  }
+
+  tick = MAX(writeFinishedAt, eraseFinishedAt);
+  tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
+}
+
+
 void PageMapping::readInternal(Request &req, uint64_t &tick) {
   PAL::Request palRequest(req);
   uint64_t beginAt;
@@ -1039,6 +1194,14 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       }
 
       finishedAt = MAX(finishedAt, beginAt);
+
+      // Predict error
+      uint32_t eraseCount = block->second.getEraseCount();
+      uint32_t layerNumber = mapping.second % 64;
+      uint64_t newErrorCount = errorModel.getRandError(0, eraseCount, layerNumber);
+
+      //TODO: Now error count can be used to put layer to bloom filter
+
     }
   }
 
