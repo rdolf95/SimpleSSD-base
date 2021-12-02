@@ -240,7 +240,7 @@ bool PageMapping::initialize() {
         conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD) * 1000000000ULL);
   }
 
-  refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_real_log.txt");
+  refreshStatFile.open("/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/log/refresh_real_log.txt");
   stat.refreshCallCount = 1;
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting done. The number of bloom filters: %u", bloomFilters.size());
 
@@ -1331,17 +1331,20 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
 
       finishedAt = MAX(finishedAt, beginAt);
 
+      
+
       if (sendToPAL){
         // Predict error
         uint32_t eraseCount = block->second.getEraseCount();
         uint32_t layerNumber = mapping.second % 64;
         
         //debugprint(LOG_FTL_PAGE_MAPPING, "P/E, layerNum: %u, %u", eraseCount, layerNumber);
-        for (uint32_t i = 1; i <= bloomFilters.size(); i++){
+        for (uint32_t i = 1, j = 1; i <= bloomFilters.size(); i++, j=j*2){
           if (i == bloomFilters.size()) {
             setRefreshPeriod(block->first, layerNumber, i-1);
+            break;
           }
-          float newRBER = errorModel.getRBER(refresh_period * 1000000000ULL * i, eraseCount, layerNumber);
+          float newRBER = errorModel.getRBER(refresh_period * 1000000000ULL * j, eraseCount, layerNumber);
           
           debugprint(LOG_FTL_PAGE_MAPPING, "%u period RBER: %f", i, newRBER);
 
