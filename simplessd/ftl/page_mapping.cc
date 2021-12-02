@@ -913,7 +913,7 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
   }
 
   // Copy valid pages to free block
-  for (uint32_t pageIndex = layerNum; pageIndex < param.pagesInBlock; pageIndex += layerNum) {
+  for (uint32_t pageIndex = layerNum; pageIndex < param.pagesInBlock; pageIndex += 64) {
     //debugprint(LOG_FTL_PAGE_MAPPING, "Check valid");
     // Valid?
     if (block->second.getValidPageCount()) {
@@ -1194,13 +1194,17 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       }
 
       finishedAt = MAX(finishedAt, beginAt);
-
+      
+      /*
       // Predict error
       uint32_t eraseCount = block->second.getEraseCount();
       uint32_t layerNumber = mapping.second % 64;
       uint64_t newErrorCount = errorModel.getRandError(0, eraseCount, layerNumber);
+      */
+      
 
       //TODO: Now error count can be used to put layer to bloom filter
+
 
     }
   }
