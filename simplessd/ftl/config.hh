@@ -45,6 +45,9 @@ typedef enum {
   /* Refresh configuration*/
   FTL_REFRESH_POLICY,
   FTL_REFRESH_THRESHOLD,
+  FTL_REFRESH_PERIOD,
+  FTL_REFRESH_FILTER_NUM,
+  FTL_REFRESH_FILTER_SIZE,
 
   /*Initial configuration for experiment*/
   FTL_INITIAL_ERASE_COUNT,
@@ -109,6 +112,9 @@ class Config : public BaseConfig {
 
   REFRESH_POLICY refreshPolicy; //!< Default: POLICY_NONE
   uint64_t refreshThreshold;    //!< Default: 10000000
+  uint64_t refreshPeriod;       //!< Default: 0
+  uint32_t refreshFilterNum;    //!< Default: 10
+  uint32_t refreshFilterSize;   //!< Default: 0
 
   uint32_t randomSeed;          //!< Default: 0
   float temperature;            //!< Default: 25

@@ -41,6 +41,9 @@ const char NAME_USE_RANDOM_IO_TWEAK[] = "EnableRandomIOTweak";
 
 const char NAME_REFRESH_POLICY[] = "RefreshPolicy";
 const char NAME_REFRESH_THREHSHOLD[] = "RefreshThreshold";
+const char NAME_REFRESH_PERIOD[] = "RefreshPeriod";
+const char NAME_REFRESH_FILTER_NUM[] = "RefreshFilterNum";
+const char NAME_REFRESH_FILTER_SIZE[] = "RefreshFilterSize";
 
 const char NAME_INIT_ERASE_COUNT[] = "InitialPECycle";
 
@@ -72,6 +75,9 @@ Config::Config() {
 
   refreshPolicy = POLICY_NONE;
   refreshThreshold = 10000000;
+  refreshPeriod = 0; 
+  refreshFilterNum = 10; 
+  refreshFilterSize = 0;
 
   temperature = 25;
   epsilon = 0.00148;
@@ -133,6 +139,15 @@ bool Config::setConfig(const char *name, const char *value) {
   }
   else if (MATCH_NAME(NAME_REFRESH_THREHSHOLD)) {
     refreshThreshold = strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_REFRESH_PERIOD)) {
+    refreshPeriod = strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_REFRESH_FILTER_NUM)) {
+    refreshFilterNum = strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_REFRESH_FILTER_SIZE)) {
+    refreshFilterSize = strtoul(value, nullptr, 10);
   }
   
   else if (MATCH_NAME(NAME_TEMPERATURE)) {
@@ -237,6 +252,16 @@ uint64_t Config::readUint(uint32_t idx) {
       break;
     case FTL_INITIAL_ERASE_COUNT:
       ret = initEraseCount;
+      break;
+            
+    case FTL_REFRESH_PERIOD:
+      ret = refreshPeriod;
+      break;
+    case FTL_REFRESH_FILTER_NUM:
+      ret = refreshFilterNum;
+      break;
+    case FTL_REFRESH_FILTER_SIZE:
+      ret = refreshFilterSize;
       break;
   }
 

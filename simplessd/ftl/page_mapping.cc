@@ -26,6 +26,8 @@
 #include "util/algorithm.hh"
 #include "util/bitset.hh"
 
+SimpleSSD::Event refreshEvent;
+
 namespace SimpleSSD {
 
 namespace FTL {
@@ -79,10 +81,12 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
 
   errorModel = ErrorModeling(tmp, Ea, epsilon, alpha, beta,
                              kTerm, mTerm, nTerm, 
-                             sigma, param.pagesInBlock, seed);
+                             sigma, param.pageSize, seed);
 }
 
-PageMapping::~PageMapping() {}
+PageMapping::~PageMapping() {
+  refreshStatFile.close();
+}
 
 bool PageMapping::initialize() {
   uint64_t nPagesToWarmup;
@@ -185,6 +189,61 @@ bool PageMapping::initialize() {
     }
   }
 
+  //setup refresh
+  uint64_t random_seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
+  uint32_t num_bf = conf.readUint(CONFIG_FTL, FTL_REFRESH_FILTER_NUM);
+  uint32_t filter_size = conf.readUint(CONFIG_FTL, FTL_REFRESH_FILTER_SIZE);
+  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting start. The number of bloom filters: %u", num_bf);
+  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh threshold error count: %u", param.pageSize / 1000);
+  //multi level bloom filter
+  for (unsigned int i=0; i<=num_bf; i++){
+    bloom_parameters parameters;
+
+    parameters.projected_element_count = 150000;
+    parameters.false_positive_probability = 1.0E-10; // 1 in 10^10
+    parameters.random_seed = random_seed++;
+    if (filter_size){
+      parameters.maximum_size = filter_size;
+    }
+
+    parameters.compute_optimal_parameters();
+    if (i != 0){  // Bloom filter size == 0 for first calculated parameters. I don't know why
+    auto newBloom = bloom_filter(parameters);
+    newBloom.clear();
+    bloomFilters.push_back(newBloom);
+    //  debugprint(LOG_FTL_PAGE_MAPPING, "Bloom filter size: %u", bloomFilters[bloomFilters.size() - 1].size());
+    }
+    else{
+      auto dummy = bloom_filter(parameters); // First Bloom filter is not accurate. I don't know why
+    }
+    
+  }
+
+  for (unsigned int i=0; i<num_bf; i++){
+    debugprint(LOG_FTL_PAGE_MAPPING, "Bloom filter %u size: %u", i, bloomFilters[i].size());
+    debugprint(LOG_FTL_PAGE_MAPPING, "bloom filter %u element count : %u", i, bloomFilters[i].element_count());
+  }
+
+  refresh_period = conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD);
+  // set up periodic refresh event
+  if (conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD) > 0) {
+    refreshEvent = engine.allocateEvent([this](uint64_t tick) {
+      refresh_event(tick);
+
+      engine.scheduleEvent(
+          refreshEvent,
+          tick + conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD) *
+                     1000000000ULL);
+    });
+    engine.scheduleEvent(
+        refreshEvent,
+        conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD) * 1000000000ULL);
+  }
+
+  refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_real_log.txt");
+  stat.refreshCallCount = 1;
+  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting done. The number of bloom filters: %u", bloomFilters.size());
+
   // Report
   calculateTotalPages(valid, invalid);
   debugprint(LOG_FTL_PAGE_MAPPING, "Filling finished. Page status:");
@@ -202,6 +261,71 @@ bool PageMapping::initialize() {
 
   return true;
 }
+
+void PageMapping::refresh_event(uint64_t tick){
+  uint32_t num_block = param.totalPhysicalBlocks;
+  uint32_t num_layer = 64;
+
+  unsigned int target_bf = 0;
+  uint64_t RC_copy = stat.refreshCallCount;
+  //uint64_t tick_old = tick;
+
+  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh at %" PRIu64, tick);
+  refreshStatFile << "Refresh at" << tick << "\n";
+
+  while (target_bf<bloomFilters.size()-1){
+    if ((RC_copy&1) == 0){
+      target_bf++;
+      RC_copy= RC_copy>>1;
+    }
+    else{
+      break;
+    }
+  }
+  debugprint(LOG_FTL_PAGE_MAPPING, "check bloom filter %u", target_bf);
+  refreshStatFile << "Check bllom filter %u" << target_bf << "\n";
+  
+  uint32_t layerCheckCount = 0;
+  for (uint32_t i=0; i<num_block;i++){
+    for (uint32_t j=0; j<num_layer;j++){
+      if (bloomFilters[target_bf].contains(std::pair<uint32_t,uint32_t>(i, j))){
+        //refresh layer
+        layerCheckCount ++;
+        //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh block %u, layer %u", i, j);
+        refreshPage(i,j,tick);
+      }
+    }
+  }
+  stat.refreshCallCount++;
+  stat.layerCheckCount += layerCheckCount;
+  debugprint(LOG_FTL_PAGE_MAPPING, "%u / %u layers checked", layerCheckCount, num_block * num_layer);
+  refreshStatFile << layerCheckCount << " / " << num_block * num_layer << "layers checked\n\n";
+  // stat.refreshTick += tick - tick_old;
+}
+
+// insert to bloom filter depending on its retention capability
+void PageMapping::setRefreshPeriod(uint32_t block_id, uint32_t layer_id, uint64_t rtc){
+  auto item = std::pair<uint32_t,uint32_t>(block_id, layer_id);
+
+  debugprint(LOG_FTL_PAGE_MAPPING, "rtc %u", rtc);
+  bloomFilters[rtc].insert(item);
+  /*
+  uint32_t factor = 0;
+  uint32_t refresh_slot = rtc/refresh_period;
+  while (refresh_slot != 0){
+    refresh_slot = refresh_slot>>1;
+    factor++;
+    if (factor == bloomFilters.size()){
+      break;
+    }
+  }
+  while(factor<bloomFilters.size()){
+    bloomFilters[factor].insert(item);
+    factor++;
+  }
+  */
+}
+
 
 void PageMapping::read(Request &req, uint64_t &tick) {
   uint64_t begin = tick;
@@ -619,6 +743,7 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
 
   // Do actual I/O here
   // This handles PAL2 limitation (SIGSEGV, infinite loop, or so-on)
+  
   for (auto &iter : readRequests) {
     beginAt = tick;
 
@@ -642,6 +767,8 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
 
     eraseFinishedAt = MAX(eraseFinishedAt, beginAt);
   }
+  
+
 
   tick = MAX(writeFinishedAt, eraseFinishedAt);
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
@@ -873,10 +1000,10 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
   std::vector<PAL::Request> eraseRequests;
   std::vector<uint64_t> lpns;
   Bitset bit(param.ioUnitInPage);
-  uint64_t beginAt;
+  uint64_t beginAt = tick;
   uint64_t readFinishedAt = tick;
   uint64_t writeFinishedAt = tick;
-  uint64_t eraseFinishedAt = tick;
+  //uint64_t eraseFinishedAt = tick;
 
   std::vector<uint64_t> tempLpns;
   Bitset tempBit(param.ioUnitInPage);
@@ -891,7 +1018,7 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
     selectVictimBlock(list, beginAt, dummy);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
-               "GC   | On-demand | %u blocks will be reclaimed", list.size());
+               "GC   | Refreshing | %u blocks will be reclaimed", list.size());
 
     doGarbageCollection(list, beginAt);
 
@@ -903,16 +1030,19 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
     stat.reclaimedBlocks += list.size();
   }
   
-  //debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
+  //debugprint(LOG_FTL_PAGE_MAPPING, "start block %u layer %u refreshing", blockIndex, layerNum);
   // For all blocks to reclaim, collecting request structure only
   auto block = blocks.find(blockIndex);
 
   if (block == blocks.end()) {
-    printf("Cannot find block %u", blockIndex);
-    panic("Invalid block, refresh failed");
+    //printf("Cannot find block %u", blockIndex);
+    //panic("Invalid block, refresh failed");
+    // This can be happen because bloom filter can produce false negative
+    return;
   }
 
   // Copy valid pages to free block
+  // pageIndex is n*layerNum??
   for (uint32_t pageIndex = layerNum; pageIndex < param.pagesInBlock; pageIndex += 64) {
     //debugprint(LOG_FTL_PAGE_MAPPING, "Check valid");
     // Valid?
@@ -950,7 +1080,9 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
           //debugprint(LOG_FTL_PAGE_MAPPING, "Found mapping list");
 
           if (mappingList == table.end()) {
-            panic("Invalid mapping table entry, refresh failed");
+            //panic("Invalid mapping table entry, refresh failed");
+            // This can be happen because bloom filter can produce false negative
+            continue;
           }
 
           pDRAM->read(&(*mappingList), 8 * param.ioUnitInPage, tick);
@@ -1014,8 +1146,9 @@ void PageMapping::refreshPage(uint32_t blockIndex, uint32_t layerNum,
 
     writeFinishedAt = MAX(writeFinishedAt, beginAt);
   }
-
-  tick = MAX(writeFinishedAt, eraseFinishedAt);
+  
+  //debugprint(LOG_FTL_PAGE_MAPPING, "page refresh done. remaining free blocks: %u", nFreeBlocks);
+  tick = MAX(writeFinishedAt, readFinishedAt);
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
 }
 
@@ -1063,6 +1196,7 @@ void PageMapping::readInternal(Request &req, uint64_t &tick) {
           block->second.read(palRequest.pageIndex, idx, beginAt);
           pPAL->read(palRequest, beginAt);
 
+          /*
           uint64_t lastWritten = block->second.getLastWrittenTime();
           uint32_t eraseCount = block->second.getEraseCount();
           uint64_t curErrorCount = block->second.getMaxErrorCount();
@@ -1078,6 +1212,7 @@ void PageMapping::readInternal(Request &req, uint64_t &tick) {
 
 
           block->second.setMaxErrorCount(max(curErrorCount, newErrorCount));
+          */
 
           finishedAt = MAX(finishedAt, beginAt);
         }
@@ -1098,6 +1233,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
   uint64_t beginAt;
   uint64_t finishedAt = tick;
   bool readBeforeWrite = false;
+
 
   if (mappingList != table.end()) {
     for (uint32_t idx = 0; idx < bitsetSize; idx++) {
@@ -1194,17 +1330,29 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       }
 
       finishedAt = MAX(finishedAt, beginAt);
-      
-      /*
-      // Predict error
-      uint32_t eraseCount = block->second.getEraseCount();
-      uint32_t layerNumber = mapping.second % 64;
-      uint64_t newErrorCount = errorModel.getRandError(0, eraseCount, layerNumber);
-      */
-      
+
+      if (sendToPAL){
+        // Predict error
+        uint32_t eraseCount = block->second.getEraseCount();
+        uint32_t layerNumber = mapping.second % 64;
+        
+        //debugprint(LOG_FTL_PAGE_MAPPING, "P/E, layerNum: %u, %u", eraseCount, layerNumber);
+        for (uint32_t i = 1; i <= bloomFilters.size(); i++){
+          if (i == bloomFilters.size()) {
+            setRefreshPeriod(block->first, layerNumber, i-1);
+          }
+          float newRBER = errorModel.getRBER(refresh_period * 1000000000ULL * i, eraseCount, layerNumber);
+          
+          debugprint(LOG_FTL_PAGE_MAPPING, "%u period RBER: %f", i, newRBER);
+
+          if (newRBER > 0.01){ // 10^-2 = ECC capability
+            //debugprint(LOG_FTL_PAGE_MAPPING, "insert %u, %u, %u", block->first, layerNumber, i);
+            setRefreshPeriod(block->first, layerNumber, i-1);
+          }
+        }
+      }
 
       //TODO: Now error count can be used to put layer to bloom filter
-
 
     }
   }
@@ -1245,7 +1393,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     stat.gcCount++;
     stat.reclaimedBlocks += list.size();
   }
-  
+  /*
   if (tick - lastRefreshed > 1000000000 && sendToPAL){  // check every 1ms
 
     std::vector<uint32_t> list;
@@ -1268,6 +1416,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     }
     lastRefreshed = tick;
   }
+  */
 }
 
 void PageMapping::trimInternal(Request &req, uint64_t &tick) {
@@ -1444,6 +1593,14 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "Total copied valid pages during Refresh";
   list.push_back(temp);
 
+  temp.name = prefix + "page_mapping.refresh.call_count";
+  temp.desc = "The number of refresh call";
+  list.push_back(temp);
+
+  temp.name = prefix + "page_mapping.refresh.layer_check_count";
+  temp.desc = "The number of total layer check";
+  list.push_back(temp);
+
   temp.name = prefix + "page_mapping.refresh.error_counts";
   temp.desc = "The average number of errors";
   list.push_back(temp);
@@ -1459,6 +1616,16 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "page_mapping.freeBlock_counts";
   temp.desc = "The number of free blocks left";
   list.push_back(temp);
+
+  
+  if (bloomFilters.size()){
+    for(uint32_t i=0; i<bloomFilters.size(); i++){
+      temp.name = prefix + "page_mapping.bloomFilter";
+      temp.desc = "The number elements of bf-";
+      list.push_back(temp);
+    }
+  }
+  
 }
 
 void PageMapping::getStatValues(std::vector<double> &values) {
@@ -1471,11 +1638,22 @@ void PageMapping::getStatValues(std::vector<double> &values) {
   values.push_back(stat.refreshedBlocks);
   values.push_back(stat.refreshSuperPageCopies);
   values.push_back(stat.refreshPageCopies);
+  values.push_back(stat.refreshCallCount);
+  values.push_back(stat.layerCheckCount);
 
   values.push_back(calculateAverageError());
   values.push_back(calculateWearLeveling());
 
   values.push_back(nFreeBlocks);
+  
+  if (bloomFilters.size()){
+    for(uint32_t i=0; i<bloomFilters.size(); i++){
+      values.push_back(bloomFilters[i].element_count());
+    }
+  }
+  
+  
+
 }
 
 void PageMapping::resetStatValues() {

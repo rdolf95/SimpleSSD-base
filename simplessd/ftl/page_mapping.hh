@@ -23,6 +23,7 @@
 #include <cinttypes>
 #include <unordered_map>
 #include <vector>
+#include <fstream>
 
 #include "ftl/abstract_ftl.hh"
 #include "ftl/common/block.hh"
@@ -30,6 +31,11 @@
 #include "pal/pal.hh"
 
 #include "ftl/error_modeling.hh"
+
+#include "ftl/bloom_filter.hh" // for bloom filter
+#include "sim/engine.hh"
+
+extern Engine engine;
 
 namespace SimpleSSD {
 
@@ -64,12 +70,21 @@ class PageMapping : public AbstractFTL {
     uint64_t refreshedBlocks;
     uint64_t refreshSuperPageCopies;
     uint64_t refreshPageCopies;
+    uint64_t refreshCallCount;
+    uint64_t layerCheckCount;
   } stat;
 
   uint64_t lastRefreshed;
 
   ErrorModeling errorModel;
 
+  std::vector<bloom_filter> bloomFilters;
+  uint64_t refresh_period;
+  
+  std::ofstream refreshStatFile;
+
+  void refresh_event(uint64_t);
+  void setRefreshPeriod(uint32_t block_id, uint32_t layer_id, uint64_t rtc);
   float freeBlockRatio();
   uint32_t convertBlockIdx(uint32_t);
   uint32_t getFreeBlock(uint32_t);

@@ -113,23 +113,19 @@ Error model :
 */
 float ErrorModeling::getRBER(float retentionTime, float peCycle, uint32_t layer){
   
-  float rber;
-  //float aTerm = getAterm(peCycle);
-  //float bTerm = getBterm(peCycle);
-
-  //std::cout << "Aterm " << aTerm << std::endl;
-  //std::cout << "Bterm " << bTerm << std::endl;
+  double rber;
 
   retentionTime = arrhenius(retentionTime); // convert to time in room temp
 
   retentionTime = retentionTime / 1000000000000 / 60 / 60 / 24; // time unit : day
 
-  //std::cout << "retentionTime " << retentionTime << std::endl;
+  retentionTime = retentionTime * 50; // Acceleration
 
-  //std::cout << "layer factor " << layerFactor[layer] << std::endl;
+  //std::cout << "Converted retention " << retentionTime << std::endl;
+  
+  rber = epsilon + alpha * pow(peCycle, k) + beta * pow(peCycle, m) * pow(retentionTime, n);
 
-  rber = epsilon + alpha * pow(peCycle, k) \
-         + beta * pow(peCycle, m) + pow(retentionTime, n);
+  //std::cout << "rber " << rber << std::endl;
   
   rber = rber * layerFactor[layer];  
 
@@ -164,6 +160,23 @@ uint32_t ErrorModeling::getRandError(float retentionTime, float peCycle,
   
 
   return static_cast<uint32_t>(errorCount + 0.5);
+}
+
+uint32_t ErrorModeling::getAverageError(float retentionTime, float peCycle,
+                                      uint32_t layer){
+                                       
+  float rber = getRBER(retentionTime, peCycle, layer);
+  //std::cout << "rber " << rber << std::endl;
+  //std::cout << "pecycle " << peCycle << std::endl;
+  //std::cout << "retentionTime " << retentionTime << std::endl;
+  
+  float averageError;
+
+  averageError = rber * pageSize * 8;
+
+  
+
+  return static_cast<uint32_t>(averageError + 0.5);
 }
 
 }

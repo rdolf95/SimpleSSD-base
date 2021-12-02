@@ -75,6 +75,7 @@ class ErrorModeling {
   //float getRBER(float, float);
   float getRBER(float, float, uint32_t);
   uint32_t getRandError(float, float, uint32_t);
+  uint32_t getAverageError(float, float, uint32_t);
 };
 
 }  // namespace FTL
