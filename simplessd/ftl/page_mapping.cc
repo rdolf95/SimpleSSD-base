@@ -240,7 +240,7 @@ bool PageMapping::initialize() {
         conf.readUint(CONFIG_FTL, FTL_REFRESH_PERIOD) * 1000000000ULL);
   }
 
-  refreshStatFile.open("/home/rdolf/SimpleSSD/SimpleSSD-Standalone-base/log/refresh_real_log.txt");
+  refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_web_2_2hour_400s_30d_log.txt");
   stat.refreshCallCount = 1;
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting done. The number of bloom filters: %u", bloomFilters.size());
 
@@ -1330,8 +1330,6 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       }
 
       finishedAt = MAX(finishedAt, beginAt);
-
-      
 
       if (sendToPAL){
         // Predict error

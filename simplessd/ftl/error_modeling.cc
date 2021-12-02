@@ -119,7 +119,8 @@ float ErrorModeling::getRBER(float retentionTime, float peCycle, uint32_t layer)
 
   retentionTime = retentionTime / 1000000000000 / 60 / 60 / 24; // time unit : day
 
-  retentionTime = retentionTime * 50; // Acceleration
+  retentionTime = retentionTime * 23; // Acceleration (about 30 days)
+  //retentionTime = retentionTime * 19; // Acceleration (about 25 days)
 
   //std::cout << "Converted retention " << retentionTime << std::endl;
   
