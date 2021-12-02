@@ -45,6 +45,7 @@ endif ()
 # Add subproject
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/mcpat)
 
+get_filename_component(PARENT_DIR ../ ABSOLUTE)
 # Set include directories
 include_directories(
   ${PROJECT_SOURCE_DIR}
@@ -52,6 +53,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/lib/mcpat/cacti
   ${PROJECT_SOURCE_DIR}/lib/inih
   ${DRAMPOWER_SOURCE_DIR}
+  ${PARENT_DIR}
 )
 
 # Platform specific settings
