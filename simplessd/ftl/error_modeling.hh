@@ -46,6 +46,7 @@ class ErrorModeling {
   */
 
   float epsilon;
+  float gamma;
   float alpha;
   float beta;
   float k;
@@ -67,14 +68,15 @@ class ErrorModeling {
 
  public:
   ErrorModeling();
-  ErrorModeling(float, float, float, float, float, 
-                               float, float, float, float, uint32_t, uint32_t);
+  ErrorModeling(float, float, float, float, float, float,
+                float, float, float, float, uint32_t, uint32_t);
   ~ErrorModeling();
   void setTemperature(float);
 
   //float getRBER(float, float);
-  float getRBER(float, float, uint32_t);
+  float getRBER(uint64_t, float, uint32_t);
   uint32_t getRandError(float, float, uint32_t);
+  uint32_t getAverageError(float, float, uint32_t);
 };
 
 }  // namespace FTL

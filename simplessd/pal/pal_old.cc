@@ -376,6 +376,7 @@ void PALOLD::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "Total erase operation bytes";
   list.push_back(temp);
 
+  /*
   temp.name = prefix + "read.time.dma0.wait";
   temp.desc = "Average dma0 wait time of read";
   list.push_back(temp);
@@ -395,11 +396,13 @@ void PALOLD::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "read.time.dma1";
   temp.desc = "Average dma1 time of read";
   list.push_back(temp);
+  */
 
   temp.name = prefix + "read.time.total";
   temp.desc = "Average time of read";
   list.push_back(temp);
 
+  /*
   temp.name = prefix + "program.time.dma0.wait";
   temp.desc = "Average dma0 wait time of program";
   list.push_back(temp);
@@ -419,11 +422,13 @@ void PALOLD::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "program.time.dma1";
   temp.desc = "Average dma1 time of program";
   list.push_back(temp);
+  */
 
   temp.name = prefix + "program.time.total";
   temp.desc = "Average time of program";
   list.push_back(temp);
 
+  /*
   temp.name = prefix + "erase.time.dma0.wait";
   temp.desc = "Average dma0 wait time of erase";
   list.push_back(temp);
@@ -443,11 +448,13 @@ void PALOLD::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "erase.time.dma1";
   temp.desc = "Average dma1 time of erase";
   list.push_back(temp);
+  */
 
   temp.name = prefix + "erase.time.total";
   temp.desc = "Average time of erase";
   list.push_back(temp);
 
+  /*
   temp.name = prefix + "channel.time.active";
   temp.desc = "Average active time of all channels";
   list.push_back(temp);
@@ -455,6 +462,7 @@ void PALOLD::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "die.time.active";
   temp.desc = "Average active time of all dies";
   list.push_back(temp);
+  */
 }
 
 void PALOLD::getStatValues(std::vector<double> &values) {
@@ -484,35 +492,35 @@ void PALOLD::getStatValues(std::vector<double> &values) {
   values.push_back(stat.writeCount * param.pageSize);
   values.push_back(stat.eraseCount * param.pageSize * param.page);
 
-  stats->getReadBreakdown(breakdown);
-  values.push_back(breakdown.dma0wait);
-  values.push_back(breakdown.dma0);
-  values.push_back(breakdown.mem);
-  values.push_back(breakdown.dma1wait);
-  values.push_back(breakdown.dma1);
+  //stats->getReadBreakdown(breakdown);
+  //values.push_back(breakdown.dma0wait);
+  //values.push_back(breakdown.dma0);
+  //values.push_back(breakdown.mem);
+  //values.push_back(breakdown.dma1wait);
+  //values.push_back(breakdown.dma1);
   values.push_back(ticks.read);
 
-  stats->getWriteBreakdown(breakdown);
-  values.push_back(breakdown.dma0wait);
-  values.push_back(breakdown.dma0);
-  values.push_back(breakdown.mem);
-  values.push_back(breakdown.dma1wait);
-  values.push_back(breakdown.dma1);
+  //stats->getWriteBreakdown(breakdown);
+  //values.push_back(breakdown.dma0wait);
+  //values.push_back(breakdown.dma0);
+  //values.push_back(breakdown.mem);
+  //values.push_back(breakdown.dma1wait);
+  //values.push_back(breakdown.dma1);
   values.push_back(ticks.write);
 
-  stats->getEraseBreakdown(breakdown);
-  values.push_back(breakdown.dma0wait);
-  values.push_back(breakdown.dma0);
-  values.push_back(breakdown.mem);
-  values.push_back(breakdown.dma1wait);
-  values.push_back(breakdown.dma1);
+  //stats->getEraseBreakdown(breakdown);
+  //values.push_back(breakdown.dma0wait);
+  //values.push_back(breakdown.dma0);
+  //values.push_back(breakdown.mem);
+  //values.push_back(breakdown.dma1wait);
+  //values.push_back(breakdown.dma1);
   values.push_back(ticks.erase);
 
-  stats->getChannelActiveTimeAll(active);
-  values.push_back(active.average);
+  //stats->getChannelActiveTimeAll(active);
+  //values.push_back(active.average);
 
-  stats->getDieActiveTimeAll(active);
-  values.push_back(active.average);
+  //stats->getDieActiveTimeAll(active);
+  //values.push_back(active.average);
 }
 
 void PALOLD::resetStatValues() {

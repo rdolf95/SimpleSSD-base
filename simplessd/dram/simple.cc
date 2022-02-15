@@ -158,6 +158,7 @@ void SimpleDRAM::getStatList(std::vector<Stats> &list, std::string prefix) {
 
   AbstractDRAM::getStatList(list, prefix);
 
+  /*
   temp.name = prefix + "read.request_count";
   temp.desc = "Read request count";
   list.push_back(temp);
@@ -181,17 +182,18 @@ void SimpleDRAM::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "bytes";
   temp.desc = "Total data size in byte";
   list.push_back(temp);
+  */
 }
 
 void SimpleDRAM::getStatValues(std::vector<double> &values) {
   AbstractDRAM::getStatValues(values);
 
-  values.push_back(readStat.count);
-  values.push_back(readStat.size);
-  values.push_back(writeStat.count);
-  values.push_back(writeStat.size);
-  values.push_back(readStat.count + writeStat.count);
-  values.push_back(readStat.size + writeStat.size);
+  //values.push_back(readStat.count);
+  //values.push_back(readStat.size);
+  //values.push_back(writeStat.count);
+  //values.push_back(writeStat.size);
+  //values.push_back(readStat.count + writeStat.count);
+  //values.push_back(readStat.size + writeStat.size);
 }
 
 void SimpleDRAM::resetStatValues() {

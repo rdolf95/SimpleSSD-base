@@ -843,7 +843,10 @@ void GenericCache::format(LPNRange &range, uint64_t &tick) {
 
 void GenericCache::getStatList(std::vector<Stats> &list, std::string prefix) {
   Stats temp;
-
+  temp.name = prefix;
+  list.push_back(temp);
+  list.pop_back();
+  /*
   temp.name = prefix + "generic_cache.read.request_count";
   temp.desc = "Read request count";
   list.push_back(temp);
@@ -859,13 +862,16 @@ void GenericCache::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.name = prefix + "generic_cache.write.to_cache";
   temp.desc = "Write requests that served to cache";
   list.push_back(temp);
+  */
 }
 
 void GenericCache::getStatValues(std::vector<double> &values) {
-  values.push_back(stat.request[0]);
-  values.push_back(stat.cache[0]);
-  values.push_back(stat.request[1]);
-  values.push_back(stat.cache[1]);
+  values.push_back(0);
+  values.pop_back();
+  //values.push_back(stat.request[0]);
+  //values.push_back(stat.cache[0]);
+  //values.push_back(stat.request[1]);
+  //values.push_back(stat.cache[1]);
 }
 
 void GenericCache::resetStatValues() {

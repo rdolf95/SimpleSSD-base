@@ -48,6 +48,7 @@ const char NAME_TEMPERATURE[] = "Temperature";
 const char NAME_EPSILON[] = "Epsilon";
 const char NAME_ALPHA[] = "Alpha";
 const char NAME_BETA[] = "Beta";
+const char NAME_GAMMA[] = "Gamma";
 const char NAME_KTERM[] = "Kterm";
 const char NAME_MTERM[] = "Mterm";
 const char NAME_NTERM[] = "Nterm";
@@ -77,6 +78,7 @@ Config::Config() {
   epsilon = 0.00148;
   alpha = 3.9E-10;
   beta = 0.0000628;
+  gamma = 0.0000328;
   kTerm = 2.05;
   mTerm = 0.14;
   nTerm = 0.54;
@@ -146,6 +148,9 @@ bool Config::setConfig(const char *name, const char *value) {
   }
   else if (MATCH_NAME(NAME_BETA)) {
     beta = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_GAMMA)) {
+    gamma = strtof(value, nullptr);
   }
   else if (MATCH_NAME(NAME_KTERM)) {
     kTerm = strtof(value, nullptr);
@@ -273,6 +278,9 @@ float Config::readFloat(uint32_t idx) {
       ret = alpha;
       break;
     case FTL_BETA:
+      ret = beta;
+      break;
+    case FTL_GAMMA:
       ret = beta;
       break;
     case FTL_KTERM:

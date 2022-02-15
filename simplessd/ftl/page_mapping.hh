@@ -30,6 +30,9 @@
 #include "pal/pal.hh"
 
 #include "ftl/error_modeling.hh"
+#include "sim/engine.hh"
+
+extern Engine engine;
 
 namespace SimpleSSD {
 
@@ -91,6 +94,7 @@ class PageMapping : public AbstractFTL {
   void selectRefreshVictim(std::vector<uint32_t> &, uint64_t &);
   void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
                             const REFRESH_POLICY, uint64_t);
+  void refresh(uint64_t);
   
   float calculateAverageError();
 

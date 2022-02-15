@@ -54,6 +54,7 @@ typedef enum {
   FTL_EPSILON,
   FTL_ALPHA,
   FTL_BETA,
+  FTL_GAMMA,
   FTL_KTERM,
   FTL_MTERM,
   FTL_NTERM,
@@ -115,6 +116,7 @@ class Config : public BaseConfig {
   float epsilon;                 //!< Default: 0.0000006175
   float alpha;                 //!< Default: 0.00006636
   float beta;                 //!< Default: 0.02416
+  float gamma;                  //!< Default: 0.0000328
   float kTerm;                 //!< Default: -4.110
   float mTerm;
   float nTerm;

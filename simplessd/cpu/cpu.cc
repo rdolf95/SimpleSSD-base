@@ -795,7 +795,7 @@ uint64_t CPU::applyLatency(NAMESPACE ns, FUNCTION fct) {
 void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
   Stats temp;
   std::string number;
-
+/*
   for (uint32_t i = 0; i < hilCore.size(); i++) {
     number = std::to_string(i);
 
@@ -832,7 +832,7 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
 
   for (uint32_t i = 0; i < iclCore.size(); i++) {
     number = std::to_string(i);
-
+  
     temp.name = prefix + ".icl" + number + ".busy";
     temp.desc = "CPU for ICL core " + number + " busy ticks";
     list.push_back(temp);
@@ -863,7 +863,7 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
     temp.desc = "CPU for ICL core " + number + " executed other instructions";
     list.push_back(temp);
   }
-
+*/
   for (uint32_t i = 0; i < ftlCore.size(); i++) {
     number = std::to_string(i);
 
@@ -871,6 +871,7 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
     temp.desc = "CPU for FTL core " + number + " busy ticks";
     list.push_back(temp);
 
+    /*
     temp.name = prefix + ".ftl" + number + ".insts.branch";
     temp.desc = "CPU for FTL core " + number + " executed branch instructions";
     list.push_back(temp);
@@ -896,11 +897,12 @@ void CPU::getStatList(std::vector<Stats> &list, std::string prefix) {
     temp.name = prefix + ".ftl" + number + ".insts.others";
     temp.desc = "CPU for FTL core " + number + " executed other instructions";
     list.push_back(temp);
+    */
   }
 }
 
 void CPU::getStatValues(std::vector<double> &values) {
-  for (auto &core : hilCore) {
+  /*for (auto &core : hilCore) {
     auto &stat = core.getStat();
 
     values.push_back(stat.busy);
@@ -923,17 +925,17 @@ void CPU::getStatValues(std::vector<double> &values) {
     values.push_back(stat.instStat.floatingPoint);
     values.push_back(stat.instStat.otherInsts);
   }
-
+*/
   for (auto &core : ftlCore) {
     auto &stat = core.getStat();
 
     values.push_back(stat.busy);
-    values.push_back(stat.instStat.branch);
-    values.push_back(stat.instStat.load);
-    values.push_back(stat.instStat.store);
-    values.push_back(stat.instStat.arithmetic);
-    values.push_back(stat.instStat.floatingPoint);
-    values.push_back(stat.instStat.otherInsts);
+    //values.push_back(stat.instStat.branch);
+    //values.push_back(stat.instStat.load);
+    //values.push_back(stat.instStat.store);
+    //values.push_back(stat.instStat.arithmetic);
+    //values.push_back(stat.instStat.floatingPoint);
+    //values.push_back(stat.instStat.otherInsts);
   }
 }
 

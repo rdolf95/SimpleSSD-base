@@ -26,6 +26,8 @@
 #include "util/algorithm.hh"
 #include "util/bitset.hh"
 
+SimpleSSD::Event refreshEvent;
+
 namespace SimpleSSD {
 
 namespace FTL {
@@ -70,6 +72,7 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
   float epsilon = conf.readFloat(CONFIG_FTL, FTL_EPSILON);
   float alpha = conf.readFloat(CONFIG_FTL, FTL_ALPHA);
   float beta = conf.readFloat(CONFIG_FTL, FTL_BETA);
+  float gamma = conf.readFloat(CONFIG_FTL, FTL_GAMMA);
   float kTerm = conf.readFloat(CONFIG_FTL, FTL_KTERM);
   float mTerm = conf.readFloat(CONFIG_FTL, FTL_MTERM);
   float nTerm = conf.readFloat(CONFIG_FTL, FTL_NTERM);
@@ -77,7 +80,7 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
   uint32_t seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
 
 
-  errorModel = ErrorModeling(tmp, Ea, epsilon, alpha, beta,
+  errorModel = ErrorModeling(tmp, Ea, epsilon, alpha, beta, gamma,
                              kTerm, mTerm, nTerm, 
                              sigma, param.pagesInBlock, seed);
 }
@@ -183,6 +186,20 @@ bool PageMapping::initialize() {
       req.lpn = dist(gen);
       writeInternal(req, tick, false);
     }
+  }
+
+  uint64_t refresh_period = 3600000000000000; //3600s = 1 hour
+  // set up periodic refresh event
+  if (refresh_period > 0) {
+    refreshEvent = engine.allocateEvent([this](uint64_t tick) {
+      refresh(tick);
+
+      engine.scheduleEvent(
+          refreshEvent, 
+          tick + 3600000000000000);
+    });
+    engine.scheduleEvent(
+        refreshEvent, refresh_period);
   }
 
   // Report
@@ -826,15 +843,17 @@ void PageMapping::calculateRefreshWeight(
     std::vector<std::pair<uint32_t, float>> &weight, const REFRESH_POLICY policy,
     uint64_t tick) {
 
-  static uint64_t refreshThreshold =
-      conf.readUint(CONFIG_FTL, FTL_REFRESH_THRESHOLD);
+  //static uint64_t refreshThreshold =
+  //    conf.readUint(CONFIG_FTL, FTL_REFRESH_THRESHOLD);
 
   weight.reserve(blocks.size());
 
   switch (policy) {
     case POLICY_NONE:
       for (auto &iter : blocks) {
-        if (tick - iter.second.getLastWrittenTime() < refreshThreshold) {
+        if (errorModel.getRBER(tick - iter.second.getLastWrittenTime(), iter.second.getEraseCount(), 20)
+            < 0.00015) {
+        //if (tick - iter.second.getLastWrittenTime() < refreshThreshold) {
           continue;
         }
         // Refresh all blocks having data retention time exceeding thredhold
@@ -1079,8 +1098,11 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     stat.reclaimedBlocks += list.size();
   }
   
-  if (tick - lastRefreshed > 1000000000 && sendToPAL){  // check every 1ms
 
+}
+
+void PageMapping::refresh(uint64_t tick){
+  
     std::vector<uint32_t> list;
     uint64_t beginAt = tick;
 
@@ -1099,8 +1121,6 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       stat.refreshCount++;
       stat.refreshedBlocks += list.size();
     }
-    lastRefreshed = tick;
-  }
 }
 
 void PageMapping::trimInternal(Request &req, uint64_t &tick) {
