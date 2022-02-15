@@ -23,6 +23,8 @@
 #include <cinttypes>
 #include <unordered_map>
 #include <vector>
+#include <fstream>
+#include <deque>
 
 #include "ftl/abstract_ftl.hh"
 #include "ftl/common/block.hh"
@@ -30,6 +32,7 @@
 #include "pal/pal.hh"
 
 #include "ftl/error_modeling.hh"
+
 #include "sim/engine.hh"
 
 extern Engine engine;
@@ -67,11 +70,25 @@ class PageMapping : public AbstractFTL {
     uint64_t refreshedBlocks;
     uint64_t refreshSuperPageCopies;
     uint64_t refreshPageCopies;
+    uint64_t refreshCallCount;
+    uint64_t layerCheckCount;
   } stat;
 
   uint64_t lastRefreshed;
 
   ErrorModeling errorModel;
+
+  uint64_t refresh_period;
+
+  Bitset insertedLayerCheck;
+  std::vector< std::deque<uint32_t> > refreshQueues;
+  std::vector< std::deque<uint32_t> > checkedQueues;
+  
+  std::ofstream refreshStatFile;
+
+  // Refresh
+  void refresh_event(uint64_t);
+  void setRefreshPeriod(uint32_t, uint32_t);
 
   float freeBlockRatio();
   uint32_t convertBlockIdx(uint32_t);
@@ -90,11 +107,13 @@ class PageMapping : public AbstractFTL {
   void trimInternal(Request &, uint64_t &);
   void eraseInternal(PAL::Request &, uint64_t &);
 
+  // Old refresh
   void doRefresh(std::vector<uint32_t> &, uint64_t &);
   void selectRefreshVictim(std::vector<uint32_t> &, uint64_t &);
   void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
                             const REFRESH_POLICY, uint64_t);
-  void refresh(uint64_t);
+
+  void refreshPage(uint32_t, uint64_t &);
   
   float calculateAverageError();
 
