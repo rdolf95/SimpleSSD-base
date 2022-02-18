@@ -38,6 +38,7 @@ ErrorModeling::ErrorModeling(float temperature, float activationEnergy,
   //std::cout << "epsilon " << epsilon << std::endl;
   //std::cout << "alpha " << alpha << std::endl;
   //std::cout << "beta " << beta << std::endl;
+  //std::cout << "gamma " << gamma << std::endl;
   //std::cout << "k " << k << std::endl;
   //std::cout << "m " << m << std::endl;
   //std::cout << "n " << n << std::endl;

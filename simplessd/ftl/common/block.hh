@@ -52,6 +52,7 @@ class Block {
   // Refresh practice
   uint64_t lastWritten;
   uint64_t maxErrorCount;
+  uint32_t refreshQueueNum;
 
  public:
   Block(uint32_t, uint32_t, uint32_t);
@@ -83,6 +84,8 @@ class Block {
   void setLastWrittenTime(uint64_t);
   void setMaxErrorCount(uint64_t);
   uint64_t getMaxErrorCount();
+  void setRefreshQueueNum(uint32_t);
+  uint32_t getRefreshQueueNum();
 };
 
 }  // namespace FTL

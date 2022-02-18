@@ -281,7 +281,7 @@ float Config::readFloat(uint32_t idx) {
       ret = beta;
       break;
     case FTL_GAMMA:
-      ret = beta;
+      ret = gamma;
       break;
     case FTL_KTERM:
       ret = kTerm;

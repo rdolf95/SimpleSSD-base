@@ -37,7 +37,8 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit)
       lastAccessed(0),
       eraseCount(0),
       lastWritten(0),
-      maxErrorCount(0){
+      maxErrorCount(0),
+      refreshQueueNum(9){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -78,7 +79,8 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit, uint32_t initPE
       lastAccessed(0),
       eraseCount(0),
       lastWritten(0),
-      maxErrorCount(0){
+      maxErrorCount(0),
+      refreshQueueNum(9){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -132,6 +134,7 @@ Block::Block(const Block &old)
   
   lastWritten = old.lastWritten;
   maxErrorCount = old.maxErrorCount;
+  refreshQueueNum = old.refreshQueueNum;
 }
 
 Block::Block(Block &&old) noexcept
@@ -148,7 +151,8 @@ Block::Block(Block &&old) noexcept
       lastAccessed(std::move(old.lastAccessed)),
       eraseCount(std::move(old.eraseCount)),
       lastWritten(std::move(old.lastWritten)),
-      maxErrorCount(std::move(old.maxErrorCount)) {
+      maxErrorCount(std::move(old.maxErrorCount)) ,
+      refreshQueueNum(std::move(old.refreshQueueNum)){
   // TODO Use std::exchange to set old value to null (C++14)
   old.idx = 0;
   old.pageCount = 0;
@@ -162,6 +166,7 @@ Block::Block(Block &&old) noexcept
   old.eraseCount = 0;
   old.lastWritten = 0;
   old.maxErrorCount = 0;
+  old.refreshQueueNum = 0;
 }
 
 Block::~Block() {
@@ -213,6 +218,7 @@ Block &Block::operator=(Block &&rhs) {
     eraseCount = std::move(rhs.eraseCount);
     lastWritten = std::move(rhs.lastWritten);
     maxErrorCount = std::move(rhs.maxErrorCount);
+    refreshQueueNum = std::move(rhs.refreshQueueNum);
 
     rhs.pNextWritePageIndex = nullptr;
     rhs.pValidBits = nullptr;
@@ -223,6 +229,7 @@ Block &Block::operator=(Block &&rhs) {
     rhs.eraseCount = 0;
     rhs.lastWritten = 0;
     rhs.maxErrorCount = 0;
+    rhs.refreshQueueNum = 0;
   }
 
   return *this;
@@ -259,6 +266,14 @@ void Block::setMaxErrorCount(uint64_t maxError){
 
 uint64_t Block::getMaxErrorCount(){
   return maxErrorCount;
+}
+
+void Block::setRefreshQueueNum(uint32_t refreshQueueNum){
+  this->refreshQueueNum = refreshQueueNum;
+}
+
+uint32_t Block::getRefreshQueueNum(){
+  return refreshQueueNum;
 }
 
 uint32_t Block::getValidPageCount() {

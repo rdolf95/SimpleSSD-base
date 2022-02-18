@@ -86,7 +86,7 @@ PageMapping::PageMapping(ConfigReader &c, Parameter &p, PAL::PAL *l,
 }
 
 PageMapping::~PageMapping() {
-  refreshStatFile.close();
+  //refreshStatFile.close();
 }
 
 bool PageMapping::initialize() {
@@ -134,25 +134,25 @@ bool PageMapping::initialize() {
 
     //setup refresh
   //uint64_t random_seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
-  uint32_t num_bf = conf.readUint(CONFIG_FTL, FTL_REFRESH_FILTER_NUM);
+  uint32_t num_queue = 10;
   //uint32_t filter_size = conf.readUint(CONFIG_FTL, FTL_REFRESH_FILTER_SIZE);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting start. The number of bloom filters: %u", num_bf);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh threshold error count: %u", param.pageSize / 1000);
   
   //deque version
-  for (uint32_t i=0; i<num_bf; i++){
+  for (uint32_t i=0; i<num_queue; i++){
     refreshQueues.push_back(std::deque<uint32_t>());
     checkedQueues.push_back(std::deque<uint32_t>());
   }
-  insertedLayerCheck = Bitset(DIVCEIL(param.totalPhysicalBlocks * param.pagesInBlock, 8)); 
+  insertedBlockCheck = Bitset(param.totalPhysicalBlocks); 
   // TODO : 8 = # of pages for each layer
-  insertedLayerCheck.reset();
+  insertedBlockCheck.reset();
 
   // total physical blocks : total blocks in SSD
   // total logical blocks : total blocks that host can use (smaller than physical because of OP)
 
   debugprint(LOG_FTL_PAGE_MAPPING, "DIVCEIL(param.totalLogicalBlocks * param.pagesInBlock, 8): %u", DIVCEIL(param.totalLogicalBlocks * param.pagesInBlock, 8));
-  debugprint(LOG_FTL_PAGE_MAPPING, "insertedLayerCheck.size(): %u", insertedLayerCheck.size());
+  debugprint(LOG_FTL_PAGE_MAPPING, "insertedLayerCheck.size(): %u", insertedBlockCheck.size());
 
   
 
@@ -176,7 +176,7 @@ bool PageMapping::initialize() {
   }
 
   // Refresh static file
-  refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_stat_10^-3_1hour_no_accel.txt");
+  //refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_stat_10^-3_1hour_no_accel.txt");
   stat.refreshCallCount = 1;
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting done. The number of queues: %u", refreshQueues.size());
 
@@ -269,7 +269,7 @@ void PageMapping::refresh_event(uint64_t tick){
   uint32_t checkPeriod = (refreshcallCount / 12) + 1;
 
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh at %" PRIu64, tick);
-  refreshStatFile << "Refresh at" << tick << "\n";
+  //refreshStatFile << "Refresh at" << tick << "\n";
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh call count: %lu", refreshcallCount);
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh checkPeriod: %lu", refreshcallCount);
   
@@ -285,7 +285,7 @@ void PageMapping::refresh_event(uint64_t tick){
   }
   debugprint(LOG_FTL_PAGE_MAPPING, "Target queue: %u", target_queue);
 
-  refreshStatFile << "Check queue %u" << target_queue << "\n";
+  //refreshStatFile << "Check queue %u" << target_queue << "\n";
   
   // Refresh queues including target queue 
   // Lower queue also should be refreshed  
@@ -296,7 +296,7 @@ void PageMapping::refresh_event(uint64_t tick){
     std::deque<uint32_t> tempQueue = checkedQueues[i];
     checkedQueues[i] = refreshQueues[i];
     refreshQueues[i] = tempQueue;
-    refreshPage(i, tick);
+    refreshBlock(i, tick);
   }
   
   // TODO : This can make huge performance overehead. 
@@ -314,28 +314,33 @@ void PageMapping::refresh_event(uint64_t tick){
 }
 
 // insert to refresh queue
-void PageMapping::setRefreshPeriod(uint32_t eraseCount, uint32_t layerID){
-  
-  //debugprint(LOG_FTL_PAGE_MAPPING, "Set refresh start: %u, %u", eraseCount, layerID);
-  if (!insertedLayerCheck.test(layerID)){  
-    for (uint32_t i = 1, j = 1; i <= refreshQueues.size(); i++, j=j*2){
-      if (i == refreshQueues.size()) {
-        refreshQueues[i-1].push_back(layerID);
-        break;
-      }
-      //std::cout << "j " << j << std::endl;
-      //debugprint(LOG_FTL_PAGE_MAPPING, "refresh period: %lu", refresh_period);
-      float newRBER = errorModel.getRBER(refresh_period * j, eraseCount, layerID % 64);
-      //debugprint(LOG_FTL_PAGE_MAPPING, "%u period RBER: %f", i, newRBER);
+void PageMapping::setRefreshPeriod(uint32_t eraseCount, uint32_t blockID, uint32_t layerID){
 
-      if (newRBER > 0.00015){ // 10^-4 = ECC capability
-        //debugprint(LOG_FTL_PAGE_MAPPING, "insert %u, %u, %u", block->first, layerNumber, i);
-        refreshQueues[i].push_back(layerID);
-        break; // In deque version, we should insert layer to only one deque
-      }
+  auto block = blocks.find(blockID);
+  //debugprint(LOG_FTL_PAGE_MAPPING, "Set refresh start: %u, %u", eraseCount, layerID);
+  for (uint32_t i = 1, j = 1; i <= refreshQueues.size(); i++, j=j*2){
+    if (i == refreshQueues.size()) {
+      refreshQueues[i-1].push_back(blockID);
+      block->second.setRefreshQueueNum(i-1);
+      break;
     }
-    insertedLayerCheck.set(layerID,true);
+    //std::cout << "j " << j << std::endl;
+    //debugprint(LOG_FTL_PAGE_MAPPING, "refresh period: %lu", refresh_period);
+    float newRBER = errorModel.getRBER(refresh_period * j, eraseCount, layerID);
+    //debugprint(LOG_FTL_PAGE_MAPPING, "%u period RBER: %f", i, newRBER);
+
+    if (newRBER > 0.00032){ // 10^-4 = ECC capability
+      //debugprint(LOG_FTL_PAGE_MAPPING, "insert %u, %u, %u", block->first, layerNumber, i);
+      
+      if (block->second.getRefreshQueueNum() > i) {
+        refreshQueues[i].push_back(blockID);
+        block->second.setRefreshQueueNum(i);
+      }
+  
+      break; // In deque version, we should insert layer to only one deque
+    }
   }
+  insertedBlockCheck.set(blockID,true);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Set refresh end: %u, %u", eraseCount, layerID);
 }
 
@@ -743,7 +748,7 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
 
             //debugprint(LOG_FTL_PAGE_MAPPING, "set refresh period - erasecount, layerNymber, blockIdx, pageIdx: %u, %u, %u, %u",
             //          eraseCount, layerNumber, newBlockIdx, newPageIdx);
-            setRefreshPeriod(eraseCount, newBlockIdx * 64 + layerNumber);
+            setRefreshPeriod(eraseCount, newBlockIdx, layerNumber);
 
             stat.validPageCopies++;
           }
@@ -796,7 +801,7 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
 }
 
 
-void PageMapping::refreshPage(uint32_t queueNum, uint64_t &tick) {
+void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh page start");
   PAL::Request req(param.ioUnitInPage);
   std::vector<PAL::Request> readRequests;
@@ -836,27 +841,25 @@ void PageMapping::refreshPage(uint32_t queueNum, uint64_t &tick) {
   }
   
   // For all blocks to reclaim, collecting request structure only
-  uint32_t maxRefreshLayer = 100000;  // # of layer can be refreshed for each refresh interval (not check interval)
+  uint32_t maxRefreshBlock = 2000;  // # of blocks can be refreshed for each refresh interval (not check interval)
 
-  for (uint32_t i = 0; i < maxRefreshLayer; i++) {
+  for (uint32_t i = 0; i < maxRefreshBlock; i++) {
     if (checkedQueues[queueNum].empty()){
       break;
     }
     
-    uint32_t layerID = checkedQueues[queueNum].front();
+    uint32_t blockIndex = checkedQueues[queueNum].front();
     checkedQueues[queueNum].pop_front();
 
-    uint32_t blockIndex = layerID / 64;
-    uint32_t layerIndex = layerID % 64;
-    debugprint(LOG_FTL_PAGE_MAPPING, "Refresh page layerID: %u", layerID);
-
-    if (!insertedLayerCheck.test(layerID)) {
-      // This shouldn't be happened. Layer check bitmap should be reset only after it is refreshed
-      panic("Corrupted layer check bitmap, refresh failed. Layer ID : %u", layerID);
+    if (!insertedBlockCheck.test(blockIndex)) {
+      // This can be happened, when block is refreshed already with high priority
+      // Block can be inserted multiple times e.g. inserted by layer with low RBER, then inserted by layer with high RBER
+      continue;
+      //panic("Corrupted block check bitmap, refresh failed. Block ID : %u", blockIndex);
     }
 
     // Reset refresh check bitmap
-    insertedLayerCheck.set(layerID,false);
+    insertedBlockCheck.set(blockIndex,false);
     
     auto block = blocks.find(blockIndex);
     if (block == blocks.end()) {
@@ -866,7 +869,7 @@ void PageMapping::refreshPage(uint32_t queueNum, uint64_t &tick) {
     }
 
       // Copy valid pages to free block
-      for (uint32_t pageIndex = layerIndex; pageIndex < param.pagesInBlock; pageIndex += 64) {
+      for (uint32_t pageIndex = 0; pageIndex < param.pagesInBlock; pageIndex ++) {
 
         //if (block->second.getValidPageCount()) {  // Valid?
         if (block->second.getPageInfo(pageIndex, lpns, bit)) {  //Modified!!!
@@ -929,9 +932,9 @@ void PageMapping::refreshPage(uint32_t queueNum, uint64_t &tick) {
               writeRequests.push_back(req);
               
               uint32_t eraseCount = freeBlock->second.getEraseCount();
-              //uint32_t layerNumber = newPageIdx % 64;
+              uint32_t layerNumber = newPageIdx % 64;
 
-              setRefreshPeriod(eraseCount, layerID);
+              setRefreshPeriod(eraseCount, newBlockIdx, layerNumber);
 
               stat.refreshPageCopies++;
             }
@@ -942,7 +945,7 @@ void PageMapping::refreshPage(uint32_t queueNum, uint64_t &tick) {
           stat.refreshSuperPageCopies++;
         }
       }
-
+    stat.refreshedBlocks++;
   }
 
 
@@ -1184,10 +1187,10 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
       uint32_t eraseCount = block->second.getEraseCount();
       uint32_t layerNumber = mapping.second % 64;
       
-      uint32_t globalLayerNum = (block->first * 64) + layerNumber;
+      //uint32_t globalLayerNum = (block->first * 64) + layerNumber;
       //debugprint(LOG_FTL_PAGE_MAPPING, "set refresh period - erasecount, globalLayerNum, blockIdx, pageIdx: %u, %u, %u, %u",
       //  eraseCount, globalLayerNum, block->first, mapping.second);
-      setRefreshPeriod(eraseCount, globalLayerNum);
+      setRefreshPeriod(eraseCount, block->first, layerNumber);
       //}
 
       //TODO: Now error count can be used to put layer to bloom filter

@@ -80,7 +80,7 @@ class PageMapping : public AbstractFTL {
 
   uint64_t refresh_period;
 
-  Bitset insertedLayerCheck;
+  Bitset insertedBlockCheck;
   std::vector< std::deque<uint32_t> > refreshQueues;
   std::vector< std::deque<uint32_t> > checkedQueues;
   
@@ -88,7 +88,7 @@ class PageMapping : public AbstractFTL {
 
   // Refresh
   void refresh_event(uint64_t);
-  void setRefreshPeriod(uint32_t, uint32_t);
+  void setRefreshPeriod(uint32_t, uint32_t, uint32_t);
 
   float freeBlockRatio();
   uint32_t convertBlockIdx(uint32_t);
@@ -113,7 +113,7 @@ class PageMapping : public AbstractFTL {
   void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
                             const REFRESH_POLICY, uint64_t);
 
-  void refreshPage(uint32_t, uint64_t &);
+  void refreshBlock(uint32_t, uint64_t &);
   
   float calculateAverageError();
 
