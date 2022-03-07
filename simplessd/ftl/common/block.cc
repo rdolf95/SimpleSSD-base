@@ -38,7 +38,7 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit)
       eraseCount(0),
       lastWritten(0),
       maxErrorCount(0),
-      refreshQueueNum(9){
+      refreshQueueNum(99){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -80,7 +80,7 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit, uint32_t initPE
       eraseCount(0),
       lastWritten(0),
       maxErrorCount(0),
-      refreshQueueNum(9){
+      refreshQueueNum(99){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);

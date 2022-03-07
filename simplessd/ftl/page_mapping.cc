@@ -134,7 +134,7 @@ bool PageMapping::initialize() {
 
     //setup refresh
   //uint64_t random_seed = conf.readUint(CONFIG_FTL, FTL_RANDOM_SEED);
-  uint32_t num_queue = 10;
+  uint32_t num_queue = 200;
   //uint32_t filter_size = conf.readUint(CONFIG_FTL, FTL_REFRESH_FILTER_SIZE);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting start. The number of bloom filters: %u", num_bf);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh threshold error count: %u", param.pageSize / 1000);
@@ -157,7 +157,7 @@ bool PageMapping::initialize() {
   
 
   // set up periodic refresh event
-  refresh_period = 3600000000000000*12;  // 1hour *24 = 1day
+  refresh_period = 3600000000000000*1;  // 1hour *24 = 1day
   
   if (refresh_period > 0) {
     refreshEvent = engine.allocateEvent([this](uint64_t tick) {
@@ -169,15 +169,15 @@ bool PageMapping::initialize() {
                      1000000000ULL);*/
       engine.scheduleEvent(
           refreshEvent,
-          tick + 3600000000000000);
+          tick + 1800000000000000);
     });
     engine.scheduleEvent(
-        refreshEvent, 3600000000000000);
+        refreshEvent, 1800000000000000);
   }
 
   // Refresh static file
   //refreshStatFile.open("/home/rdolf/EE817/simplessd/log/refresh_stat_10^-3_1hour_no_accel.txt");
-  stat.refreshCallCount = 1;
+  stat.refreshCallCount = 0;
   debugprint(LOG_FTL_PAGE_MAPPING, "Refresh setting done. The number of queues: %u", refreshQueues.size());
 
   // Step 1. Filling
@@ -260,68 +260,49 @@ bool PageMapping::initialize() {
 
 
 void PageMapping::refresh_event(uint64_t tick){
-  //uint32_t num_block = param.totalPhysicalBlocks;
-  //uint32_t num_layer = 64;
-  //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh event start");
 
-  uint32_t target_queue = 1;
-  uint64_t refreshcallCount = stat.refreshCallCount;
-  uint32_t checkPeriod = (refreshcallCount / 12) + 1;
+  uint32_t refreshMode = 0;   // 0 : Linear queue (similar with page), 1 : Scan all blocks
 
-  //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh at %" PRIu64, tick);
-  //refreshStatFile << "Refresh at" << tick << "\n";
-  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh call count: %lu", refreshcallCount);
-  debugprint(LOG_FTL_PAGE_MAPPING, "Refresh checkPeriod: %lu", refreshcallCount);
-  
+  if (refreshMode == 0) {
+    uint64_t refreshcallCount = stat.refreshCallCount / 2;
+    uint32_t target_queue = (refreshcallCount + 1) % refreshQueues.size();
+    
+    debugprint(LOG_FTL_PAGE_MAPPING, "Refresh call count: %lu", refreshcallCount);
+    debugprint(LOG_FTL_PAGE_MAPPING, "Refresh checkPeriod: %lu", refreshcallCount);
+    
+    debugprint(LOG_FTL_PAGE_MAPPING, "Target queue: %u", target_queue);
 
-  while (target_queue < refreshQueues.size()-1){
-    if ((checkPeriod & 1) == 0){
-      target_queue++;
-      checkPeriod = checkPeriod >> 1;
-    }
-    else{
-      break;
-    }
+    std::deque<uint32_t> tempQueue = checkedQueues[target_queue];
+    checkedQueues[target_queue] = refreshQueues[target_queue];
+    refreshQueues[target_queue] = tempQueue;
+    refreshBlock(target_queue, tick);
+
+    stat.refreshCallCount++;
+    stat.layerCheckCount += 0;
   }
-  debugprint(LOG_FTL_PAGE_MAPPING, "Target queue: %u", target_queue);
-
-  //refreshStatFile << "Check queue %u" << target_queue << "\n";
-  
-  // Refresh queues including target queue 
-  // Lower queue also should be refreshed  
-  // e.g. level 1 : 1 interval, level 2 : 2 interval, level 3 : 4 interval
-  // if level 3 is refreshed for 4th interval, level 1, 2 also should be refreshed
-
-  for (uint32_t i = 0; i <= target_queue; i++){
-    std::deque<uint32_t> tempQueue = checkedQueues[i];
-    checkedQueues[i] = refreshQueues[i];
-    refreshQueues[i] = tempQueue;
-    refreshBlock(i, tick);
+  else if (refreshMode == 1) {
+    /* code */
   }
   
-  // TODO : This can make huge performance overehead. 
-  //        It can be reduced by refreshing in background with maxRefreshPage in refreshPage function
-
-  // TODO : The 2 queue should be maintained during background refresh
-  //        One for should be refreshed and the other for new refresh queue
-  //        Currently there is only one queue for each level.
-  
-
-  stat.refreshCallCount++;
-  stat.layerCheckCount += 0;
-  // stat.refreshTick += tick - tick_old;
-  //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh event end");
+ 
 }
 
 // insert to refresh queue
 void PageMapping::setRefreshPeriod(uint32_t eraseCount, uint32_t blockID, uint32_t layerID){
 
+
+  uint64_t refreshcallCount = stat.refreshCallCount / 2;
+  uint32_t num_queue = refreshQueues.size();
+  uint32_t cur_queue = refreshcallCount % num_queue;
+  
   auto block = blocks.find(blockID);
   //debugprint(LOG_FTL_PAGE_MAPPING, "Set refresh start: %u, %u", eraseCount, layerID);
-  for (uint32_t i = 1, j = 1; i <= refreshQueues.size(); i++, j=j*2){
-    if (i == refreshQueues.size()) {
-      refreshQueues[i-1].push_back(blockID);
-      block->second.setRefreshQueueNum(i-1);
+  for (uint32_t i = 1, j = 1; i <= num_queue; i++, j=j+1){
+    if (i == num_queue) {
+      refreshQueues[cur_queue].push_back(blockID);
+      block->second.setRefreshQueueNum(cur_queue);
+      //refreshQueues[i-1].push_back(blockID);
+      //block->second.setRefreshQueueNum(i-1);
       break;
     }
     //std::cout << "j " << j << std::endl;
@@ -332,9 +313,11 @@ void PageMapping::setRefreshPeriod(uint32_t eraseCount, uint32_t blockID, uint32
     if (newRBER > 0.00032){ // 10^-4 = ECC capability
       //debugprint(LOG_FTL_PAGE_MAPPING, "insert %u, %u, %u", block->first, layerNumber, i);
       
-      if (block->second.getRefreshQueueNum() > i) {
-        refreshQueues[i].push_back(blockID);
-        block->second.setRefreshQueueNum(i);
+      
+      if ((block->second.getRefreshQueueNum() - cur_queue) > j) {
+        refreshQueues[(cur_queue + j) % num_queue].push_back(blockID);
+        block->second.setRefreshQueueNum((cur_queue + j) % num_queue);
+        
       }
   
       break; // In deque version, we should insert layer to only one deque
@@ -841,7 +824,7 @@ void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
   }
   
   // For all blocks to reclaim, collecting request structure only
-  uint32_t maxRefreshBlock = 2000;  // # of blocks can be refreshed for each refresh interval (not check interval)
+  uint32_t maxRefreshBlock = 6000;  // # of blocks can be refreshed for each refresh interval (not check interval)
 
   for (uint32_t i = 0; i < maxRefreshBlock; i++) {
     if (checkedQueues[queueNum].empty()){
@@ -854,6 +837,7 @@ void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
     if (!insertedBlockCheck.test(blockIndex)) {
       // This can be happened, when block is refreshed already with high priority
       // Block can be inserted multiple times e.g. inserted by layer with low RBER, then inserted by layer with high RBER
+      i = i -1;
       continue;
       //panic("Corrupted block check bitmap, refresh failed. Block ID : %u", blockIndex);
     }
@@ -865,6 +849,7 @@ void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
     if (block == blocks.end()) {
       //panic("Invalid block, refresh failed");
       // This can be happen if the block is GCed at the beginning of refresh
+      i = i -1;
       continue;
     }
 
