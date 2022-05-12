@@ -53,6 +53,7 @@ const char NAME_KTERM[] = "Kterm";
 const char NAME_MTERM[] = "Mterm";
 const char NAME_NTERM[] = "Nterm";
 const char NAME_ERROR_SIGMA[] = "ErrorSigma";
+const char NAME_REFRESH_MAX_RBER[] = "MaxRBER";
 const char NAME_RANDOM_SEED[] = "RandomSeed";
 
 
@@ -83,6 +84,7 @@ Config::Config() {
   mTerm = 0.14;
   nTerm = 0.54;
   errorSigma = 2;
+  refreshMaxRBER = 0.00018;
   randomSeed = 0;
   initEraseCount = 0;
 }
@@ -163,6 +165,9 @@ bool Config::setConfig(const char *name, const char *value) {
   }
   else if (MATCH_NAME(NAME_ERROR_SIGMA)) {
     errorSigma = strtof(value, nullptr);
+  }
+  else if (MATCH_NAME(NAME_REFRESH_MAX_RBER)) {
+    refreshMaxRBER = strtof(value, nullptr);
   }
   else if (MATCH_NAME(NAME_RANDOM_SEED)) {
     randomSeed = strtoul(value, nullptr, 10);
@@ -294,6 +299,9 @@ float Config::readFloat(uint32_t idx) {
       break;
     case FTL_ERROR_SIGMA:
       ret = errorSigma;
+      break;
+    case FTL_REFRESH_MAX_RBER:
+      ret = refreshMaxRBER;
       break;
   }
 

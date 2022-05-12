@@ -45,6 +45,7 @@ typedef enum {
   /* Refresh configuration*/
   FTL_REFRESH_POLICY,
   FTL_REFRESH_THRESHOLD,
+  FTL_REFRESH_MAX_RBER,
 
   /*Initial configuration for experiment*/
   FTL_INITIAL_ERASE_COUNT,
@@ -113,14 +114,15 @@ class Config : public BaseConfig {
 
   uint32_t randomSeed;          //!< Default: 0
   float temperature;            //!< Default: 25
-  float epsilon;                 //!< Default: 0.0000006175
-  float alpha;                 //!< Default: 0.00006636
-  float beta;                 //!< Default: 0.02416
+  float epsilon;                //!< Default: 0.0000006175
+  float alpha;                  //!< Default: 0.00006636
+  float beta;                   //!< Default: 0.02416
   float gamma;                  //!< Default: 0.0000328
-  float kTerm;                 //!< Default: -4.110
+  float kTerm;                  //!< Default: -4.110
   float mTerm;
   float nTerm;
-  float errorSigma;                  //!< Default: 2
+  float errorSigma;             //!< Default: 2
+  float refreshMaxRBER;         //!< Default: 0.00018
   uint32_t initEraseCount;      //!< Default : 0
 
  public:

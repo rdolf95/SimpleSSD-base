@@ -83,6 +83,8 @@ class PageMapping : public AbstractFTL {
   Bitset insertedBlockCheck;
   std::vector< std::deque<uint32_t> > refreshQueues;
   std::vector< std::deque<uint32_t> > checkedQueues;
+
+  std::deque< uint32_t > refreshTargetQueue; // For refresh mode 1
   
   std::ofstream refreshStatFile;
 
@@ -108,7 +110,7 @@ class PageMapping : public AbstractFTL {
   void eraseInternal(PAL::Request &, uint64_t &);
 
   // Old refresh
-  void doRefresh(std::vector<uint32_t> &, uint64_t &);
+  void doRefresh(uint64_t &);
   void selectRefreshVictim(std::vector<uint32_t> &, uint64_t &);
   void calculateRefreshWeight(std::vector<std::pair<uint32_t, float>> &,
                             const REFRESH_POLICY, uint64_t);
