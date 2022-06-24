@@ -25,6 +25,7 @@
 #include "simplessd/sim/base_config.hh"
 
 typedef enum {
+  GLOBAL_BASE_CONFIG,
   GLOBAL_SIM_MODE,
   GLOBAL_LOG_PERIOD,
   GLOBAL_LOG_FILE,
@@ -58,6 +59,7 @@ typedef enum {
 
 class Config : public SimpleSSD::BaseConfig {
  private:
+  std::string baseConfig;
   SIM_MODE mode;
   uint64_t logPeriod;
   std::string logFile;

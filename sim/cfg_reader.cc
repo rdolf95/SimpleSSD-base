@@ -37,6 +37,16 @@ bool ConfigReader::init(std::string file) {
     return false;
   }
 
+  auto baseConfig = readString(CONFIG_GLOBAL, GLOBAL_BASE_CONFIG);
+  if(!baseConfig.empty() && file != baseConfig) {
+	  if(!init(baseConfig))
+		  return false;
+	  if (ini_parse(file.c_str(), parserHandler, this) < 0) {
+		  return false;
+	  }
+  }
+
+
   // Update all
   globalConfig.update();
   traceConfig.update();

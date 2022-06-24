@@ -50,6 +50,7 @@ typedef enum {
 
 class ConfigReader {
  private:
+  CPU::Config globalConfig;
   CPU::Config cpuConfig;
   DRAM::Config dramConfig;
   FTL::Config ftlConfig;

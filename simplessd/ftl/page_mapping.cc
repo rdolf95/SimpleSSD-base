@@ -434,7 +434,7 @@ void PageMapping::format(LPNRange &range, uint64_t &tick) {
   list.erase(last, list.end());
 
   // Do GC only in specified blocks
-  doGarbageCollection(list, tick);
+  doGarbageCollection(list, tick, false);
 
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::FORMAT);
 }
@@ -663,7 +663,7 @@ void PageMapping::selectVictimBlock(std::vector<uint32_t> &list,
 }
 
 void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
-                                      uint64_t &tick) {
+                                      uint64_t &tick, bool isRefresh) {
   PAL::Request req(param.ioUnitInPage);
   std::vector<PAL::Request> readRequests;
   std::vector<PAL::Request> writeRequests;
@@ -752,6 +752,9 @@ void PageMapping::doGarbageCollection(std::vector<uint32_t> &blocksToReclaim,
             //          eraseCount, layerNumber, newBlockIdx, newPageIdx);
             setRefreshPeriod(eraseCount, newBlockIdx, layerNumber);
 
+            if(isRefresh){
+              stat.refreshPageCopies++;
+            }
             stat.validPageCopies++;
           }
         }
@@ -847,7 +850,7 @@ void PageMapping::doRefresh(uint64_t &tick) {
     debugprint(LOG_FTL_PAGE_MAPPING,
               "GC   | Refreshing | %u blocks will be reclaimed", list.size());
 
-    doGarbageCollection(list, beginAt);
+    doGarbageCollection(list, beginAt, true);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
               "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
@@ -983,6 +986,41 @@ void PageMapping::doRefresh(uint64_t &tick) {
 
   tick = MAX(writeFinishedAt, eraseFinishedAt);
   tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
+
+  if (freeBlockRatio() < gcThreshold) {
+    
+    debugprint(LOG_FTL_PAGE_MAPPING, "gcThreshold : %lf", gcThreshold);
+    debugprint(LOG_FTL_PAGE_MAPPING, "freeBlockRatio : %lf", freeBlockRatio());
+    debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks : %u", nFreeBlocks);
+
+    std::vector<uint32_t> list;
+    uint64_t beginAt = tick;
+
+    std::vector<uint32_t> dummy;
+
+    selectVictimBlock(list, beginAt, dummy);
+
+    // If the block would be garbage collected, it shouldn't be refeshed
+    //for (auto & gcIter : list) {
+      //debugprint(LOG_FTL_PAGE_MAPPING, "Block %u will be garbage collected", gcIter);
+    //  blocksToRefresh.erase(std::remove(blocksToRefresh.begin(), blocksToRefresh.end(), gcIter), blocksToRefresh.end());
+    //}
+    
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+              "GC   | Refreshing | %u blocks will be reclaimed", list.size());
+
+    doGarbageCollection(list, beginAt, true);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+              "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
+              beginAt, beginAt - tick);
+    stat.gcCount++;
+    stat.reclaimedBlocks += list.size();
+    //debugprint(LOG_FTL_PAGE_MAPPING, "n free blocks after gc : %u", nFreeBlocks);
+
+    // Problem : refresh 될 block이 garbage collection에 의해 erase 될 수 있음
+  }
   
 }
 
@@ -1015,7 +1053,7 @@ void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | Refreshing | %u blocks will be reclaimed", list.size());
 
-    doGarbageCollection(list, beginAt);
+    doGarbageCollection(list, beginAt, true);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
@@ -1177,7 +1215,7 @@ void PageMapping::refreshBlock(uint32_t queueNum, uint64_t &tick) {
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | Refreshing | %u blocks will be reclaimed", list.size());
 
-    doGarbageCollection(list, beginAt);
+    doGarbageCollection(list, beginAt, true);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
@@ -1412,7 +1450,7 @@ void PageMapping::writeInternal(Request &req, uint64_t &tick, bool sendToPAL) {
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | On-demand | %u blocks will be reclaimed", list.size());
 
-    doGarbageCollection(list, beginAt);
+    doGarbageCollection(list, beginAt, false);
 
     debugprint(LOG_FTL_PAGE_MAPPING,
                "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
@@ -1607,6 +1645,10 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "Total copied valid pages during GC";
   list.push_back(temp);
 
+  temp.name = prefix + "page_mapping.refreshGc.page_copies";
+  temp.desc = "Total copied valid pages during GC due to refresh";
+  list.push_back(temp);
+
   temp.name = prefix + "page_mapping.refresh.count";
   temp.desc = "Total Refresh count";
   list.push_back(temp);
@@ -1627,9 +1669,11 @@ void PageMapping::getStatList(std::vector<Stats> &list, std::string prefix) {
   temp.desc = "The number of refresh call";
   list.push_back(temp);
 
+  /*
   temp.name = prefix + "page_mapping.refresh.layer_check_count";
   temp.desc = "The number of total layer check";
   list.push_back(temp);
+  */
 
   temp.name = prefix + "page_mapping.refresh.error_counts";
   temp.desc = "The average number of errors";
@@ -1672,13 +1716,14 @@ void PageMapping::getStatValues(std::vector<double> &values) {
   values.push_back(stat.reclaimedBlocks);
   values.push_back(stat.validSuperPageCopies);
   values.push_back(stat.validPageCopies);
+  values.push_back(stat.refreshGCPageCopies);
  
   values.push_back(stat.refreshCount);
   values.push_back(stat.refreshedBlocks);
   values.push_back(stat.refreshSuperPageCopies);
   values.push_back(stat.refreshPageCopies);
   values.push_back(stat.refreshCallCount);
-  values.push_back(stat.layerCheckCount);
+  //values.push_back(stat.layerCheckCount);
   values.push_back(calculateAverageError());
   values.push_back(refreshTargetQueue.size());
   values.push_back(calculateWearLeveling());

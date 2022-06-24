@@ -22,6 +22,7 @@
 #include "simplessd/sim/trace.hh"
 #include "util/convert.hh"
 
+const char NAME_BASE_CONFIG[] = "CommonConfig";
 const char NAME_MODE[] = "Mode";
 const char NAME_LOG_PERIOD[] = "LogPeriod";
 const char NAME_LOG_FILE[] = "LogFile";
@@ -44,7 +45,10 @@ Config::Config() {
 bool Config::setConfig(const char *name, const char *value) {
   bool ret = true;
 
-  if (MATCH_NAME(NAME_MODE)) {
+  if (MATCH_NAME(NAME_BASE_CONFIG)) {
+    baseConfig = value;
+  }
+  else if (MATCH_NAME(NAME_MODE)) {
     mode = (SIM_MODE)strtoul(value, nullptr, 10);
   }
   else if (MATCH_NAME(NAME_LOG_PERIOD)) {
@@ -124,6 +128,9 @@ std::string Config::readString(uint32_t idx) {
   std::string ret = "";
 
   switch (idx) {
+    case GLOBAL_BASE_CONFIG:
+      ret = baseConfig;
+      break;
     case GLOBAL_LOG_FILE:
       ret = logFile;
       break;

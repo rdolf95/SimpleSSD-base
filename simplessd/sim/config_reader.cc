@@ -19,8 +19,10 @@
 
 #include "sim/config_reader.hh"
 
+#include "cpu/config.hh"
 #include "sim/base_config.hh"
 #include "sim/trace.hh"
+#include <iostream>
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -30,6 +32,7 @@
 
 namespace SimpleSSD {
 
+const char SECTION_GLOBAL[] ="global";
 const char SECTION_CPU[] = "cpu";
 const char SECTION_DRAM[] = "dram";
 const char SECTION_FTL[] = "ftl";
@@ -54,6 +57,16 @@ bool ConfigReader::init(std::string file) {
     return false;
   }
 
+  auto commonPath = globalConfig.readString(CPU::CPU_COMMON_CONFIG_PATH);
+  if(!commonPath.empty() && commonPath != file) {
+	  if (!init(commonPath)) {
+		  return false;
+	  }
+	  if (ini_parse(file.c_str(), parserHandler, this) < 0) {
+		  return false;
+	  }
+  }
+
   // Update all
   cpuConfig.update();
   dramConfig.update();
@@ -63,6 +76,7 @@ bool ConfigReader::init(std::string file) {
   palConfig.update();
   sataConfig.update();
   ufsConfig.update();
+
 
   return true;
 }
@@ -187,7 +201,10 @@ int ConfigReader::parserHandler(void *context, const char *section,
   ConfigReader *pThis = (ConfigReader *)context;
   bool handled = false;
 
-  if (MATCH_SECTION(SECTION_CPU)) {
+  if (MATCH_SECTION(SECTION_GLOBAL)) {
+    handled = pThis->globalConfig.setConfig(name, value);
+  }
+  else if (MATCH_SECTION(SECTION_CPU)) {
     handled = pThis->cpuConfig.setConfig(name, value);
   }
   else if (MATCH_SECTION(SECTION_DRAM)) {

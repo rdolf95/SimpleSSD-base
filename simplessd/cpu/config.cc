@@ -26,6 +26,7 @@ namespace SimpleSSD {
 
 namespace CPU {
 
+const char NAME_COMMON_CONFIG[] = "CommonConfig";
 const char NAME_CLOCK[] = "ClockSpeed";
 const char NAME_CORE_HIL[] = "HILCoreCount";
 const char NAME_CORE_ICL[] = "ICLCoreCount";
@@ -41,7 +42,10 @@ Config::Config() {
 bool Config::setConfig(const char *name, const char *value) {
   bool ret = true;
 
-  if (MATCH_NAME(NAME_CLOCK)) {
+  if (MATCH_NAME(NAME_COMMON_CONFIG)) {
+    commonConfigPath = value;
+  }
+  else if (MATCH_NAME(NAME_CLOCK)) {
     clock = strtoul(value, nullptr, 10);
   }
   else if (MATCH_NAME(NAME_CORE_HIL)) {
@@ -86,6 +90,16 @@ uint64_t Config::readUint(uint32_t idx) {
 
   return ret;
 }
+
+std::string Config::readString(uint32_t idx) {
+	switch (idx) {
+		case CPU_COMMON_CONFIG_PATH:
+			return commonConfigPath;
+		default:
+			return "";
+	}
+}
+
 
 }  // namespace CPU
 

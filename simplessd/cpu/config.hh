@@ -29,6 +29,7 @@ namespace SimpleSSD {
 namespace CPU {
 
 typedef enum {
+  CPU_COMMON_CONFIG_PATH,
   CPU_CLOCK,
   CPU_CORE_HIL,
   CPU_CORE_ICL,
@@ -37,6 +38,7 @@ typedef enum {
 
 class Config : public BaseConfig {
  private:
+  std::string commonConfigPath;
   uint64_t clock;    //!< Default: 400MHz
   uint32_t hilCore;  //!< Default: 1
   uint32_t iclCore;  //!< Default: 1
@@ -49,6 +51,7 @@ class Config : public BaseConfig {
   void update() override;
 
   uint64_t readUint(uint32_t) override;
+  std::string readString(uint32_t idx) override;
 };
 
 }  // namespace CPU
