@@ -73,7 +73,7 @@ Config::Config() {
   randomIOTweak = true;
 
   refreshPolicy = POLICY_NONE;
-  refreshThreshold = 10000000;
+  refreshThreshold = 25;
 
   temperature = 25;
   epsilon = 0.00148;

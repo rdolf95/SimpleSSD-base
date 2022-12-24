@@ -24,18 +24,19 @@ if len(argv) < 2:
     exit()
 
 
-## Usage : python3 script_ali.py {trace1} {trace2} ... {peCycle}
+## Usage : python3 script_ali_days.py {trace1} {trace2} ... {refreshPeriod} {peCycle}
 
 len_argv = len(argv)
 peCycle = argv[len_argv - 1]
+days = argv[len_argv - 2]
 for i in range (1, len_argv - 1):
     trace = argv[i]
     print("########################################################################################")
     print("Trace : " + trace + ", temperature : 25, PE : " + peCycle)
     print("########################################################################################")
     stdout.flush()
-    ssd_config = "alibaba" + "_pe" + peCycle + ".cfg"
-    others = ""
+    ssd_config = "alibaba" + "_pe" + peCycle + "_" + days + "days" + ".cfg"
+    others = days + "days"
     execute_with("./simplessd-standalone", trace, ssd_config, "25", peCycle, others)
     print("########################################################################################")
     print()

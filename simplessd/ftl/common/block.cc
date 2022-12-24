@@ -38,7 +38,8 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit)
       eraseCount(0),
       lastWritten(0),
       maxErrorCount(0),
-      refreshQueueNum(99){
+      refreshQueueNum(99),
+      inRefreshQueue(false){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -80,7 +81,8 @@ Block::Block(uint32_t blockIdx, uint32_t count, uint32_t ioUnit, uint32_t initPE
       eraseCount(0),
       lastWritten(0),
       maxErrorCount(0),
-      refreshQueueNum(99){
+      refreshQueueNum(99),
+      inRefreshQueue(false){
   if (ioUnitInPage == 1) {
     pValidBits = new Bitset(pageCount);
     pErasedBits = new Bitset(pageCount);
@@ -135,6 +137,7 @@ Block::Block(const Block &old)
   lastWritten = old.lastWritten;
   maxErrorCount = old.maxErrorCount;
   refreshQueueNum = old.refreshQueueNum;
+  inRefreshQueue = old.inRefreshQueue;
 }
 
 Block::Block(Block &&old) noexcept
@@ -152,7 +155,8 @@ Block::Block(Block &&old) noexcept
       eraseCount(std::move(old.eraseCount)),
       lastWritten(std::move(old.lastWritten)),
       maxErrorCount(std::move(old.maxErrorCount)) ,
-      refreshQueueNum(std::move(old.refreshQueueNum)){
+      refreshQueueNum(std::move(old.refreshQueueNum)),
+      inRefreshQueue(std::move(old.inRefreshQueue)){
   // TODO Use std::exchange to set old value to null (C++14)
   old.idx = 0;
   old.pageCount = 0;
@@ -167,6 +171,7 @@ Block::Block(Block &&old) noexcept
   old.lastWritten = 0;
   old.maxErrorCount = 0;
   old.refreshQueueNum = 0;
+  old.inRefreshQueue = false;
 }
 
 Block::~Block() {
@@ -219,6 +224,7 @@ Block &Block::operator=(Block &&rhs) {
     lastWritten = std::move(rhs.lastWritten);
     maxErrorCount = std::move(rhs.maxErrorCount);
     refreshQueueNum = std::move(rhs.refreshQueueNum);
+    inRefreshQueue = std::move(rhs.inRefreshQueue);
 
     rhs.pNextWritePageIndex = nullptr;
     rhs.pValidBits = nullptr;
@@ -230,6 +236,7 @@ Block &Block::operator=(Block &&rhs) {
     rhs.lastWritten = 0;
     rhs.maxErrorCount = 0;
     rhs.refreshQueueNum = 0;
+    rhs.inRefreshQueue = false;
   }
 
   return *this;
@@ -274,6 +281,14 @@ void Block::setRefreshQueueNum(uint32_t refreshQueueNum){
 
 uint32_t Block::getRefreshQueueNum(){
   return refreshQueueNum;
+}
+
+void Block::setInRefreshQueue(bool inRefreshQueue){
+  this->inRefreshQueue = inRefreshQueue;
+}
+
+bool Block::getInRefreshQueue(){
+  return inRefreshQueue;
 }
 
 uint32_t Block::getValidPageCount() {

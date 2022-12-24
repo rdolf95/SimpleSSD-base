@@ -18,7 +18,7 @@ def execute_with(simulator, trace, ssd_config, temperature, peCycle, others):
     if(not os.path.isdir(dir_name)):
         os.makedirs(dir_name)
 
-    subprocess.run([simulator,'./config/' + trace + '.cfg', './simplessd/config/' + ssd_config, dir_name])
+    subprocess.run([simulator,'./config/selected/' + trace + '.cfg', './simplessd/config/' + ssd_config, dir_name])
 
 if len(argv) < 2:
     exit()

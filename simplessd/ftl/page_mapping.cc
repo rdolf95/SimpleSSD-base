@@ -286,11 +286,29 @@ void PageMapping::refresh_event(uint64_t tick){
     //std::vector<uint32_t> refreshTargetQueue;
     for (auto &iter : blocks) {   // Scan all blocks
       if (errorModel.getRBER(tick - iter.second.getLastWrittenTime(), iter.second.getEraseCount(), 63)
-          < maxRBER) {  //< 0.00032) {
+          < maxRBER  || iter.second.getInRefreshQueue() == true) {  //< 0.00032) {
         continue;
       }
       // Refresh all blocks having data retention time exceeding thredhold
       refreshTargetQueue.push_back(iter.first);
+      iter.second.setInRefreshQueue(true);
+    }
+    //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh call count: %lu",  stat.refreshCallCount);
+    doRefresh(tick);
+
+    stat.refreshCallCount++;
+  }
+  else if (refreshMode == 2) {
+    //std::vector<uint32_t> refreshTargetQueue;
+    for (auto &iter : blocks) {   // Scan all blocks
+      uint32_t refreshPeriod = conf.readUint(CONFIG_FTL, FTL_REFRESH_THRESHOLD);
+      if ((tick - iter.second.getLastWrittenTime()) < 3600000000000000*24*refreshPeriod
+          || iter.second.getInRefreshQueue() == true) {  //< 0.00032) {
+        continue;
+      }
+      // Refresh all blocks having data retention time exceeding thredhold
+      refreshTargetQueue.push_back(iter.first);
+      iter.second.setInRefreshQueue(true);
     }
     //debugprint(LOG_FTL_PAGE_MAPPING, "Refresh call count: %lu",  stat.refreshCallCount);
     doRefresh(tick);
@@ -501,6 +519,7 @@ uint32_t PageMapping::getFreeBlock(uint32_t idx) {
 
     // Update first write time
     blocks.find(blockIndex)->second.setLastWrittenTime(getTick());
+    blocks.find(blockIndex)->second.setInRefreshQueue(false);
 
 
     // Remove found block from free block list
@@ -862,7 +881,7 @@ void PageMapping::doRefresh(uint64_t &tick) {
     // Problem : refresh 될 block이 garbage collection에 의해 erase 될 수 있음
   }
   
-  uint32_t maxRefreshBlock = 6000;
+  uint32_t maxRefreshBlock = 1000;
   //debugprint(LOG_FTL_PAGE_MAPPING, "start refreshing");
   // For all blocks to reclaim, collecting request structure only
   for (uint32_t i = 0; i < maxRefreshBlock; i++){

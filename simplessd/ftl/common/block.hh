@@ -54,6 +54,8 @@ class Block {
   uint64_t maxErrorCount;
   uint32_t refreshQueueNum;
 
+  bool inRefreshQueue;
+
  public:
   Block(uint32_t, uint32_t, uint32_t);
   Block(uint32_t, uint32_t, uint32_t, uint32_t);  // Initial PE cycle constructor
@@ -86,6 +88,9 @@ class Block {
   uint64_t getMaxErrorCount();
   void setRefreshQueueNum(uint32_t);
   uint32_t getRefreshQueueNum();
+
+  void setInRefreshQueue(bool);
+  bool getInRefreshQueue();
 };
 
 }  // namespace FTL

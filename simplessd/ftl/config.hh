@@ -110,7 +110,7 @@ class Config : public BaseConfig {
   bool randomIOTweak;           //!< Default: true
 
   REFRESH_POLICY refreshPolicy; //!< Default: POLICY_NONE
-  uint64_t refreshThreshold;    //!< Default: 10000000
+  uint32_t refreshThreshold;    //!< Default: 25
 
   uint32_t randomSeed;          //!< Default: 0
   float temperature;            //!< Default: 25
